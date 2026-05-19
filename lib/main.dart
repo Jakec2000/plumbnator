@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'views/ai_compliance_view.dart';
 import 'views/dashboard_view.dart';
 import 'views/qbcc_form4_view.dart';
 import 'views/sizing_calculator_view.dart';
 import 'views/whs_swms_view.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Safe diagnostic printout when running in decoupled sandbox
+  }
   runApp(
     const ProviderScope(
       child: MyApp(),
