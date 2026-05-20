@@ -12,6 +12,7 @@ class PlumbingJob {
   final double complianceScore;
   final List<String> issues;
   final bool form4Submitted;
+  final String? drainageSketchBase64;
 
   const PlumbingJob({
     required this.id,
@@ -23,6 +24,7 @@ class PlumbingJob {
     required this.complianceScore,
     required this.issues,
     this.form4Submitted = false,
+    this.drainageSketchBase64,
   });
 
   /// Computes days left under the statutory QBCC 10-business-day lodgement limit.
@@ -40,6 +42,7 @@ class PlumbingJob {
     double? complianceScore,
     List<String>? issues,
     bool? form4Submitted,
+    String? drainageSketchBase64,
   }) {
     return PlumbingJob(
       id: id,
@@ -51,6 +54,7 @@ class PlumbingJob {
       complianceScore: complianceScore ?? this.complianceScore,
       issues: issues ?? this.issues,
       form4Submitted: form4Submitted ?? this.form4Submitted,
+      drainageSketchBase64: drainageSketchBase64 ?? this.drainageSketchBase64,
     );
   }
 }
@@ -85,6 +89,84 @@ class SwmsProfile {
       isSigned: true,
       signedBy: plumberName,
       signedAt: DateTime.now(),
+    );
+  }
+}
+
+/// Represents a backflow prevention device with testing parameters under AS 2845.3.
+class BackflowDevice {
+  final String id;
+  final String serialNumber;
+  final String brand;
+  final String modelName;
+  final int sizeDn; // e.g. 20, 25, 32, 50
+  final String deviceType; // 'RPZD' or 'Double Check Valve'
+  final String location;
+  final double upstreamPressureKpa;
+  final double firstCheckValueKpa;
+  final double reliefValveOpeningKpa; // Only used for RPZD
+  final double secondCheckValueKpa;
+  final String testerName;
+  final String testerLicence;
+  final DateTime testDate;
+  final bool isSubmitted;
+
+  const BackflowDevice({
+    required this.id,
+    required this.serialNumber,
+    required this.brand,
+    required this.modelName,
+    required this.sizeDn,
+    required this.deviceType,
+    required this.location,
+    required this.upstreamPressureKpa,
+    required this.firstCheckValueKpa,
+    required this.reliefValveOpeningKpa,
+    required this.secondCheckValueKpa,
+    required this.testerName,
+    required this.testerLicence,
+    required this.testDate,
+    this.isSubmitted = false,
+  });
+
+  /// Evaluates whether the device passes testing standards under AS 2845.3.
+  bool get passesInspection {
+    if (deviceType == 'RPZD') {
+      // RPZD criteria:
+      // 1. First check valve drop >= 35 kPa
+      // 2. Relief valve opening pressure >= 14 kPa
+      // 3. Second check valve drop >= 7 kPa
+      return firstCheckValueKpa >= 35.0 &&
+          reliefValveOpeningKpa >= 14.0 &&
+          secondCheckValueKpa >= 7.0;
+    } else {
+      // Double Check Valve criteria:
+      // 1. First check valve drop >= 7 kPa
+      // 2. Second check valve drop >= 7 kPa
+      return firstCheckValueKpa >= 7.0 && secondCheckValueKpa >= 7.0;
+    }
+  }
+
+  /// Copies this device with updated submission status.
+  BackflowDevice copyWith({
+    bool? isSubmitted,
+  }) {
+    return BackflowDevice(
+      id: id,
+      serialNumber: serialNumber,
+      brand: brand,
+      modelName: modelName,
+      sizeDn: sizeDn,
+      deviceType: deviceType,
+      location: location,
+      upstreamPressureKpa: upstreamPressureKpa,
+      firstCheckValueKpa: firstCheckValueKpa,
+      reliefValveOpeningKpa: reliefValveOpeningKpa,
+      secondCheckValueKpa: secondCheckValueKpa,
+      testerName: testerName,
+      testerLicence: testerLicence,
+      testDate: testDate,
+      isSubmitted: isSubmitted ?? this.isSubmitted,
     );
   }
 }

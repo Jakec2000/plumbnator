@@ -8,6 +8,10 @@ import 'views/dashboard_view.dart';
 import 'views/qbcc_form4_view.dart';
 import 'views/sizing_calculator_view.dart';
 import 'views/whs_swms_view.dart';
+import 'views/backflow_calculator_view.dart';
+import 'views/drainage_sketcher_view.dart';
+import 'views/standards_library_view.dart';
+import 'providers/state_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,27 +57,29 @@ class MyApp extends StatelessWidget {
 }
 
 /// The responsive layout shell managing navigation states and presenting active views.
-class NavigationShell extends StatefulWidget {
+class NavigationShell extends ConsumerStatefulWidget {
   const NavigationShell({super.key});
 
   @override
-  State<NavigationShell> createState() => _NavigationShellState();
+  ConsumerState<NavigationShell> createState() => _NavigationShellState();
 }
 
-class _NavigationShellState extends State<NavigationShell> {
-  int _currentIndex = 0;
-
+class _NavigationShellState extends ConsumerState<NavigationShell> {
   final List<Widget> _views = const [
     DashboardView(),
     AiComplianceView(),
     SizingCalculatorView(),
     QbccForm4View(),
     WhsSwmsView(),
+    BackflowCalculatorView(),
+    DrainageSketcherView(),
+    StandardsLibraryView(),
   ];
 
   @override
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.of(context).size.width >= 1000;
+    final currentIndex = ref.watch(navProvider);
 
     return Scaffold(
       body: Container(
@@ -90,20 +96,20 @@ class _NavigationShellState extends State<NavigationShell> {
         child: SafeArea(
           child: Row(
             children: [
-              if (isLargeScreen) _buildSidebarRail(),
+              if (isLargeScreen) _buildSidebarRail(currentIndex),
               Expanded(
-                child: _views[_currentIndex],
+                child: _views[currentIndex],
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: !isLargeScreen ? _buildBottomNavBar() : null,
+      bottomNavigationBar: !isLargeScreen ? _buildBottomNavBar(currentIndex) : null,
     );
   }
 
   /// Sidebar navigation rail for desktop and web layouts.
-  Widget _buildSidebarRail() {
+  Widget _buildSidebarRail(int currentIndex) {
     return Container(
       width: 250,
       decoration: BoxDecoration(
@@ -120,11 +126,14 @@ class _NavigationShellState extends State<NavigationShell> {
         children: [
           _buildSidebarBrand(),
           const SizedBox(height: 24),
-          _buildSidebarItem(0, 'Dashboard', Icons.dashboard_customize_outlined),
-          _buildSidebarItem(1, 'AI Vision Audit', Icons.psychology_outlined),
-          _buildSidebarItem(2, 'Hydraulic Sizer', Icons.plumbing_outlined),
-          _buildSidebarItem(3, 'QBCC Form 4', Icons.assignment_outlined),
-          _buildSidebarItem(4, 'WHS SWMS', Icons.gavel_outlined),
+          _buildSidebarItem(0, 'Dashboard', Icons.dashboard_customize_outlined, currentIndex),
+          _buildSidebarItem(1, 'AI Vision Audit', Icons.psychology_outlined, currentIndex),
+          _buildSidebarItem(2, 'Hydraulic Sizer', Icons.plumbing_outlined, currentIndex),
+          _buildSidebarItem(3, 'QBCC Form 4', Icons.assignment_outlined, currentIndex),
+          _buildSidebarItem(4, 'WHS SWMS', Icons.gavel_outlined, currentIndex),
+          _buildSidebarItem(5, 'Backflow Tests', Icons.water_drop_outlined, currentIndex),
+          _buildSidebarItem(6, 'Drainage Plan', Icons.gesture_outlined, currentIndex),
+          _buildSidebarItem(7, 'Standards Library', Icons.menu_book_outlined, currentIndex),
           const Spacer(),
           _buildLicenseFooter(),
         ],
@@ -159,14 +168,14 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   /// Custom list tile buttons for the sidebar layout.
-  Widget _buildSidebarItem(int index, String title, IconData icon) {
-    final isSelected = _currentIndex == index;
+  Widget _buildSidebarItem(int index, String title, IconData icon, int currentIndex) {
+    final isSelected = currentIndex == index;
     final themeColor = isSelected ? const Color(0xFF00E6FF) : Colors.white60;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
+        onTap: () => ref.read(navProvider.notifier).setIndex(index),
         borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -195,10 +204,10 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   /// Standard bottom navigation bar for mobile size displays.
-  Widget _buildBottomNavBar() {
+  Widget _buildBottomNavBar(int currentIndex) {
     return NavigationBar(
-      selectedIndex: _currentIndex,
-      onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+      selectedIndex: currentIndex >= 8 ? 0 : currentIndex,
+      onDestinationSelected: (idx) => ref.read(navProvider.notifier).setIndex(idx),
       backgroundColor: const Color(0xFF0A0F1D),
       indicatorColor: const Color(0xFF00E6FF).withOpacity(0.15),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -228,6 +237,21 @@ class _NavigationShellState extends State<NavigationShell> {
           selectedIcon: Icon(Icons.gavel, color: Color(0xFF00E6FF)),
           label: 'SWMS',
         ),
+        NavigationDestination(
+          icon: Icon(Icons.water_drop_outlined),
+          selectedIcon: Icon(Icons.water_drop, color: Color(0xFF00E6FF)),
+          label: 'Backflow',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.gesture_outlined),
+          selectedIcon: Icon(Icons.gesture, color: Color(0xFF00E6FF)),
+          label: 'Sketcher',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.menu_book_outlined),
+          selectedIcon: Icon(Icons.menu_book, color: Color(0xFF00E6FF)),
+          label: 'Library',
+        ),
       ],
     );
   }
@@ -253,3 +277,4 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 }
+

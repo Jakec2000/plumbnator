@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/state_providers.dart';
 import '../widgets/glass_card.dart';
+import 'package:printing/printing.dart';
+import '../services/pdf_service.dart';
 
 /// Form 4 lodgement and statutory compliance tracker view.
 class QbccForm4View extends ConsumerStatefulWidget {
@@ -278,6 +280,8 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
             ),
           ),
           const SizedBox(height: 24),
+          const SizedBox(height: 24),
+          // Lodgement button
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -291,6 +295,24 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
               child: Text(
                 'Lodge Form 4 Now',
                 style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Export PDF button (enabled after a job is selected)
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: _selectedJobId == null ? null : _exportForm4Pdf,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF00E6FF)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.picture_as_pdf_outlined, color: Color(0xFF00E6FF)),
+              label: Text(
+                'Export Form 4 PDF',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
               ),
             ),
           ),
@@ -320,4 +342,16 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
       _selectedJobId = null;
     });
   }
+  /// Export the lodged Form 4 as a styled PDF document.
+  Future<void> _exportForm4Pdf() async {
+    if (_selectedJobId == null) return;
+    final jobs = ref.read(jobsProvider);
+    final job = jobs.firstWhere((j) => j.id == _selectedJobId);
+    final pdfBytes = await PdfService().generateForm4Pdf(job);
+    await Printing.layoutPdf(
+      onLayout: (format) => pdfBytes,
+      name: 'Form4_${job.id}.pdf',
+    );
+  }
+
 }

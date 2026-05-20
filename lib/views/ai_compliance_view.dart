@@ -1,52 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/gemini_service.dart';
+import '../providers/state_providers.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/analysis_result_card.dart';
 
-/// Interactive AI compliance checking view powered by live Gemini Vision.
-class AiComplianceView extends StatefulWidget {
+/// Multimodal compliance visual audit view powered by Grok/GPT-4o Vision API
+/// and QLD AS/NZS 3500 regulatory criteria.
+class AiComplianceView extends ConsumerStatefulWidget {
   const AiComplianceView({super.key});
 
   @override
-  State<AiComplianceView> createState() => _AiComplianceViewState();
+  ConsumerState<AiComplianceView> createState() => _AiComplianceViewState();
 }
 
-class _AiComplianceViewState extends State<AiComplianceView> {
-  final GeminiService _geminiService = GeminiService();
-
-  String _selectedCategory = 'Tempering Valve';
-  bool _isAnalyzing = false;
-  bool _showResult = false;
+class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
   String? _selectedPhotoName;
-
-  double _complianceScore = 0.96;
-  List<String> _activeClauses = [];
-  List<Map<String, dynamic>> _activeHotspots = [];
-  int _selectedHotspotIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final aiState = ref.watch(aiAnalysisProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeading(),
+          const SizedBox(height: 20),
+          _buildRateLimiterBadge(aiState),
           const SizedBox(height: 24),
-          _buildConfigurationSelector(),
-          const SizedBox(height: 24),
-          _buildControlPanel(),
-          if (_isAnalyzing) _buildScanningProgress(),
-          if (_showResult) ...[
+          _buildControlPanel(aiState),
+          if (aiState.isLoading) _buildScanningProgress(),
+          if (aiState.error != null) _buildErrorMessage(aiState.error!),
+          if (aiState.result != null) ...[
             const SizedBox(height: 32),
-            _buildComplianceReport(context),
+            AnalysisResultCard(
+              result: aiState.result!,
+              onFlagManually: () {
+                ref.read(aiAnalysisProvider.notifier).flagResultManually();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFFFF416C),
+                    content: Text(
+                      'Marked as manually flagged for priority inspector review.',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ],
       ),
     );
   }
 
-  /// Header widget.
+  /// Page heading details.
   Widget _buildHeading() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,75 +82,108 @@ class _AiComplianceViewState extends State<AiComplianceView> {
     );
   }
 
-  /// Selector for installation type.
-  Widget _buildConfigurationSelector() {
-    final categories = ['Tempering Valve', 'Drainage Junction', 'Backflow RPZD'];
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: categories.map((cat) {
-        final isSelected = _selectedCategory == cat;
-        return InkWell(
-          onTap: () {
-            setState(() {
-              _selectedCategory = cat;
-              _showResult = false;
-              _selectedPhotoName = null;
-              _activeHotspots = [];
-            });
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: isSelected ? const Color(0xFF00E6FF) : Colors.white.withOpacity(0.05),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF00E6FF) : Colors.white.withOpacity(0.1),
-              ),
-            ),
+  /// Interactive daily usage cap display.
+  Widget _buildRateLimiterBadge(AiAnalysisState aiState) {
+    final isGold = aiState.dailyRemaining == 99999;
+    final limitColor = isGold 
+        ? const Color(0xFFFFD700) 
+        : (aiState.canAnalyze ? const Color(0xFF00FF87) : const Color(0xFFFF416C));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: limitColor.withOpacity(0.08),
+        border: Border.all(color: limitColor.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isGold 
+                ? Icons.workspace_premium_outlined 
+                : (aiState.canAnalyze ? Icons.verified_outlined : Icons.lock_outline),
+            color: limitColor,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
             child: Text(
-              cat,
+              isGold
+                  ? 'PLUMBNATOR GOLD: Unlimited AS/NZS 3500 compliance scans unlocked!'
+                  : (aiState.canAnalyze
+                      ? 'Daily Usage Rate Limiter Active: ${aiState.dailyRemaining} / 5 analyses remaining today'
+                      : 'Daily Limit Reached (5/5). Upgrade to Plumbnator Gold to scan unlimited installations.'),
               style: GoogleFonts.inter(
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: isSelected ? Colors.black : Colors.white,
+                color: limitColor,
               ),
             ),
           ),
-        );
-      }).toList(),
-    );
-  }
-
-  /// Builds the file selector and run panel.
-  Widget _buildControlPanel() {
-    return GlassCard(
-      borderColor: const Color(0xFF00E6FF).withOpacity(0.1),
-      child: Column(
-        children: [
-          _buildUploaderArea(),
-          const SizedBox(height: 20),
-          _buildActionButtons(),
+          if (!isGold) ...[
+            const SizedBox(width: 12),
+            InkWell(
+              onTap: () => _showPaywallModal(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFFFFD700).withOpacity(0.15),
+                  border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.workspace_premium, color: Color(0xFFFFD700), size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Upgrade to Gold',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFD700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  /// The upload container frame. Maps floating hotspots on a Stack overlay.
-  Widget _buildUploaderArea() {
+  /// Control frame supporting sandbox mock capture & real library triggers.
+  Widget _buildControlPanel(AiAnalysisState aiState) {
+    return GlassCard(
+      borderColor: const Color(0xFF00E6FF).withOpacity(0.1),
+      child: Column(
+        children: [
+          _buildUploaderArea(aiState),
+          const SizedBox(height: 20),
+          _buildActionButtons(aiState),
+        ],
+      ),
+    );
+  }
+
+  /// Upload container slot.
+  Widget _buildUploaderArea(AiAnalysisState aiState) {
+    final hasResult = aiState.result != null;
+
     return Container(
-      height: 220,
+      height: 200,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12, style: BorderStyle.solid),
+        border: Border.all(color: Colors.white12),
         color: Colors.white.withOpacity(0.02),
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          if (!_showResult) ...[
+          if (!hasResult) ...[
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -160,80 +203,85 @@ class _AiComplianceViewState extends State<AiComplianceView> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'AS/NZS 3500 high-fidelity calibration active',
+                  'Compliant with QLD PCA water pipes, tanks, stacks & drains',
                   style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
                 ),
               ],
             ),
           ] else ...[
-            // Compliance Diagnostic Background Map Overlay
             Container(
               color: Colors.black45,
-              child: const Center(
-                child: Icon(Icons.plumbing, color: Colors.white10, size: 80),
+              child: Center(
+                child: Icon(
+                  Icons.plumbing_outlined,
+                  color: Colors.white.withOpacity(0.08),
+                  size: 72,
+                ),
               ),
             ),
-            // Floating hot spots plotted dynamically from Gemini vision response coordinates
-            ..._activeHotspots.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final spot = entry.value;
-              final x = spot['x'] as double;
-              final y = spot['y'] as double;
-              final isSelected = _selectedHotspotIndex == idx;
-
-              return Positioned(
-                left: x * 400, // Approximate canvas width mapping
-                top: y * 180, // Approximate canvas height mapping
-                child: InkWell(
-                  onTap: () => setState(() => _selectedHotspotIndex = idx),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isSelected ? const Color(0xFF00E6FF) : Colors.white.withOpacity(0.2),
-                      border: Border.all(color: Colors.white70, width: 1),
-                    ),
-                    child: Text(
-                      '${idx + 1}',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: isSelected ? Colors.black : Colors.white,
-                      ),
-                    ),
-                  ),
+            Center(
+              child: Text(
+                'Verification image uploaded successfully.',
+                style: GoogleFonts.inter(
+                  color: const Color(0xFF00FF87),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
-              );
-            }),
+              ),
+            ),
           ]
         ],
       ),
     );
   }
 
-  /// Triggers standard buttons for simulated camera capture & upload gallery.
-  Widget _buildActionButtons() {
+  /// Gallery + Camera action selections. Disables automatically when daily cap reached.
+  Widget _buildActionButtons(AiAnalysisState aiState) {
+    final enabled = !aiState.isLoading;
+
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _showPhotoGalleryDialog,
+            onPressed: enabled
+                ? () {
+                    if (aiState.canAnalyze) {
+                      _triggerSampleUpload();
+                    } else {
+                      _showPaywallModal(context);
+                    }
+                  }
+                : null,
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.white.withOpacity(0.15)),
+              side: BorderSide(color: Colors.white.withOpacity(0.12)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            icon: const Icon(Icons.photo_library_outlined, color: Color(0xFF00E6FF)),
+            icon: Icon(
+              Icons.photo_library_outlined,
+              color: enabled ? const Color(0xFF00E6FF) : Colors.white24,
+            ),
             label: Text(
               'Upload Photo',
-              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.inter(
+                color: enabled ? Colors.white : Colors.white38,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: _runSimulatedCamera,
+            onPressed: enabled
+                ? () {
+                    if (aiState.canAnalyze) {
+                      _triggerCameraCapture();
+                    } else {
+                      _showPaywallModal(context);
+                    }
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E6FF),
               foregroundColor: Colors.black,
@@ -251,63 +299,115 @@ class _AiComplianceViewState extends State<AiComplianceView> {
     );
   }
 
-  /// Simulated Camera Viewfinder overlay dialog.
-  void _runSimulatedCamera() {
+  /// Simulated gallery dialog choosing compliant elements.
+  void _triggerSampleUpload() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF0A0F1D),
         title: Text(
-          'Live Compliance Viewfinder',
+          'Select Sample File',
+          style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildGalleryTile('Water_Pipe_Lagging_Check.jpg'),
+            const SizedBox(height: 10),
+            _buildGalleryTile('Sanitary_Vent_Stack_Drain.jpg'),
+            const SizedBox(height: 10),
+            _buildGalleryTile('Hot_Water_System_Tempering.jpg'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryTile(String fileName) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).pop();
+        setState(() {
+          _selectedPhotoName = fileName;
+        });
+        _runAudit();
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white.withOpacity(0.03),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              fileName,
+              style: GoogleFonts.inter(
+                fontSize: 12.5,
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white30, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Simulated compliance live camera alignment interface.
+  void _triggerCameraCapture() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0A0F1D),
+        title: Text(
+          'Plumbing Live Viewfinder',
           style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 240,
+              height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF00E6FF), width: 2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF00E6FF), width: 1.5),
                 color: Colors.black,
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.5,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: RadialGradient(
-                            colors: [Colors.transparent, Colors.black87],
-                            radius: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.plumbing, color: Colors.white30, size: 64),
+                  const Icon(Icons.photo_camera_outlined, color: Colors.white24, size: 48),
                   Container(
                     height: 120,
                     width: 120,
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.5), width: 1.5),
+                      border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.3)),
                       shape: BoxShape.circle,
                     ),
                   ),
-                  Text(
-                    'ALIGN $_selectedCategory INSIDE FRAME',
-                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF00E6FF)),
+                  Positioned(
+                    bottom: 12,
+                    child: Text(
+                      'ALIGN WET COMPONENT INSIDE GRID',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        color: const Color(0xFF00E6FF),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
-              'Grid calibration mapping: AS/NZS 3500 compliance guidelines active.',
-              style: GoogleFonts.inter(fontSize: 11, color: Colors.white54, fontStyle: FontStyle.italic),
+              'Align water line, stack or drainage fitting inside verification circle.',
+              style: GoogleFonts.inter(fontSize: 11, color: Colors.white54),
             ),
           ],
         ),
@@ -320,101 +420,27 @@ class _AiComplianceViewState extends State<AiComplianceView> {
             onPressed: () {
               Navigator.of(ctx).pop();
               setState(() {
-                _selectedPhotoName = 'Camera_Capture_${_selectedCategory.replaceAll(' ', '_')}.jpg';
+                _selectedPhotoName = 'Camera_Capture_Live.jpg';
               });
-              _runLiveAiAnalysis();
+              _runAudit();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E6FF), foregroundColor: Colors.black),
-            child: const Text('Capture & Check'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E6FF),
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Check Compliance'),
           ),
         ],
       ),
     );
   }
 
-  /// Gallery photo dialog.
-  void _showPhotoGalleryDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0A0F1D),
-        title: Text(
-          'Select Installation Sample',
-          style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildGalleryOption(ctx, 'Tempering_Valve_Compliance_AS3500.png'),
-            const SizedBox(height: 10),
-            _buildGalleryOption(ctx, 'Drainage_Junction_Gridded_Audit.png'),
-            const SizedBox(height: 10),
-            _buildGalleryOption(ctx, 'RPZ_Backflow_Clearance_Check.png'),
-          ],
-        ),
-      ),
-    );
+  void _runAudit() {
+    // Dispatch compliance analysis flow using random dummy bytes for visual scan
+    ref.read(aiAnalysisProvider.notifier).runAnalysis([0, 1, 2, 3], persist: true);
   }
 
-  /// Renders a single image file choice in gallery list.
-  Widget _buildGalleryOption(BuildContext dialogCtx, String name) {
-    return InkWell(
-      onTap: () {
-        Navigator.of(dialogCtx).pop();
-        setState(() {
-          _selectedPhotoName = name;
-        });
-        _runLiveAiAnalysis();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white12),
-          color: Colors.white.withOpacity(0.03),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                name,
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white54, size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Triggers the live AI visual analysis dispatch.
-  Future<void> _runLiveAiAnalysis() async {
-    setState(() {
-      _isAnalyzing = true;
-      _showResult = false;
-      _selectedHotspotIndex = 0;
-    });
-
-    // Simulated read of empty bytes list (actual Vision checks parse this in stream)
-    final result = await _geminiService.checkCompliance(
-      category: _selectedCategory,
-      imageBytes: [1, 2, 3, 4],
-    );
-
-    if (mounted) {
-      setState(() {
-        _isAnalyzing = false;
-        _showResult = true;
-        _complianceScore = result['complianceScore'] as double? ?? 0.95;
-        _activeClauses = List<String>.from(result['clauses'] as List? ?? []);
-        _activeHotspots = List<Map<String, dynamic>>.from(result['hotspots'] as List? ?? []);
-      });
-    }
-  }
-
-  /// Scanning loader widget.
+  /// Scanning feedback loader.
   Widget _buildScanningProgress() {
     return Padding(
       padding: const EdgeInsets.only(top: 24.0),
@@ -426,7 +452,7 @@ class _AiComplianceViewState extends State<AiComplianceView> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Gemini 3 Pro Vision: Analyzing pixels for compliance parameters with extreme accuracy...',
+            'Grok Vision processing compliance parameters against AS/NZS 3500 with extreme accuracy...',
             style: GoogleFonts.inter(fontSize: 12, color: Colors.white70, fontStyle: FontStyle.italic),
           ),
         ],
@@ -434,184 +460,242 @@ class _AiComplianceViewState extends State<AiComplianceView> {
     );
   }
 
-  /// Comprehensive compliance check card.
-  Widget _buildComplianceReport(BuildContext context) {
-    final hasFailed = _complianceScore < 0.8;
-    final themeColor = hasFailed ? const Color(0xFFFF416C) : const Color(0xFF00FF87);
-
-    return Flex(
-      direction: MediaQuery.of(context).size.width < 900 ? Axis.vertical : Axis.horizontal,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 4,
-          child: GlassCard(
-            borderColor: themeColor.withOpacity(0.2),
-            backgroundGradient: [
-              themeColor.withOpacity(0.05),
-              Colors.white.withOpacity(0.01),
-            ],
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      hasFailed ? 'COMPLIANCE AUDIT AUDITED (ISSUES DETECTED)' : 'COMPLIANCE AUDIT PASSED',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: themeColor,
-                      ),
-                    ),
-                    Icon(
-                      hasFailed ? Icons.error_outline : Icons.check_circle_outline,
-                      color: themeColor,
-                      size: 28,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'The AI parsed standard criteria and calculated an overall compliance rating of ${(double.parse((_complianceScore * 100).toStringAsFixed(0)))}%.',
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
-                ),
-                const Divider(color: Colors.white12, height: 32),
-                Text(
-                  'Audited Parameters Checklist:',
-                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 12),
-                ..._activeClauses.map((rule) => _buildReportRule(rule, hasFailed)),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          flex: 3,
-          child: _buildVisualHotspotsCard(),
-        ),
-      ],
-    );
-  }
-
-  /// Renders a single check element.
-  Widget _buildReportRule(String rule, bool hasFailed) {
-    final isFail = hasFailed && rule.contains('gradient');
-    final checkColor = isFail ? const Color(0xFFFF416C) : const Color(0xFF00FF87);
-
+  /// Custom error presentation card.
+  Widget _buildErrorMessage(String msg) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Row(
-        children: [
-          Icon(isFail ? Icons.close : Icons.check, color: checkColor, size: 18),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              rule,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: isFail ? const Color(0xFFFF416C) : Colors.white70,
-                fontWeight: isFail ? FontWeight.bold : FontWeight.normal,
+      key: const ValueKey('error_widget'),
+      padding: const EdgeInsets.only(top: 24.0),
+      child: GlassCard(
+        borderColor: const Color(0xFFFF416C).withOpacity(0.3),
+        backgroundGradient: [
+          const Color(0xFFFF416C).withOpacity(0.08),
+          Colors.white.withOpacity(0.01),
+        ],
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline_sharp, color: Color(0xFFFF416C), size: 24),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Verification Warning',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: const Color(0xFFFF416C),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    msg,
+                    style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Renders interactive visual hotspots card showing extreme accuracy checks.
-  Widget _buildVisualHotspotsCard() {
-    return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Extreme Accuracy Hotspots',
-            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF00E6FF)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Select checkpoints to verify exact compliance measurements.',
-            style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
-          ),
-          const Divider(color: Colors.white12, height: 24),
-          ..._activeHotspots.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            final isActive = _selectedHotspotIndex == idx;
+  /// Interactive gold upgrade subscription modal sheet.
+  void _showPaywallModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            bool isLoading = false;
+            bool isSuccess = false;
 
-            return Padding(
-              key: ValueKey(idx),
-              padding: const EdgeInsets.only(bottom: 10.0),
-              child: InkWell(
-                onTap: () => setState(() => _selectedHotspotIndex = idx),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isActive ? const Color(0xFF00E6FF) : Colors.white12,
+            return Container(
+              padding: const EdgeInsets.all(28),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0A0F1D),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border(top: BorderSide(color: Color(0xFFFFD700), width: 1.5)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
                     ),
-                    color: Colors.white.withOpacity(isActive ? 0.05 : 0.01),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 24,
-                        width: 24,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isActive ? const Color(0xFF00E6FF) : Colors.white24,
-                        ),
-                        child: Text(
-                          '${idx + 1}',
-                          style: TextStyle(
-                            color: isActive ? Colors.black : Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    const SizedBox(height: 20),
+                    // Gold Crown Icon
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD700).withOpacity(0.12),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title']! as String,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            if (isActive) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                '${item['standard']! as String} — ${item['status']! as String}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: const Color(0xFF00FF87),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                      child: const Icon(Icons.workspace_premium_outlined, color: Color(0xFFFFD700), size: 36),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'UPGRADE TO PLUMBNATOR GOLD',
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFD700),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Unlock unlimited AS/NZS 3500 & PCA compliance audits',
+                      style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Plan details
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFFFD700).withOpacity(0.08),
+                            Colors.white.withOpacity(0.01),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Commercial License Plan',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13.5),
+                              ),
+                              Text(
+                                '\$29.90 / mo',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: const Color(0xFFFFD700),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: Colors.white12, height: 20),
+                          _buildPlanBenefit('Unlimited Visual AI Auditing Scans'),
+                          _buildPlanBenefit('High-Resolution As-Constructed PDF plans'),
+                          _buildPlanBenefit('AS 2845.3 Backflow tests & Form 9 registry'),
+                          _buildPlanBenefit('Offline Local database automatic synchronization'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Secure pay shield banner
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.security, color: Colors.white30, size: 14),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Secure SSL payment verified by JobFlow Pay',
+                          style: GoogleFonts.inter(fontSize: 10.5, color: Colors.white38),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (isSuccess)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        width: double.infinity,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00FF87).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '🎉 PLUMBNATOR GOLD ACTIVATED!',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF00FF87),
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  setModalState(() {
+                                    isLoading = true;
+                                  });
+                                  // Secure mock billing wait
+                                  await Future.delayed(const Duration(milliseconds: 1500));
+                                  await ref.read(aiAnalysisProvider.notifier).upgradeToGold();
+                                  setModalState(() {
+                                    isLoading = false;
+                                    isSuccess = true;
+                                  });
+                                  await Future.delayed(const Duration(milliseconds: 1000));
+                                  Navigator.pop(ctx);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: const Color(0xFFFFD700),
+                                      content: Text(
+                                        '🎉 Plumbnator Gold subscription activated successfully! Welcome to premium!',
+                                        style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  );
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD700),
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : Text(
+                                  'Authorize & Unlock Plumbnator Gold',
+                                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             );
-          }),
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPlanBenefit(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_outline, color: Color(0xFFFFD700), size: 14),
+          const SizedBox(width: 8),
+          Text(text, style: GoogleFonts.inter(fontSize: 11.5, color: Colors.white70)),
         ],
       ),
     );

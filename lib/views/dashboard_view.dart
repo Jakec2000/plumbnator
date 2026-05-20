@@ -12,6 +12,7 @@ class DashboardView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jobs = ref.watch(jobsProvider);
+    final aiState = ref.watch(aiAnalysisProvider);
     final totalJobs = jobs.length;
     final avgScore = totalJobs == 0
         ? 0.0
@@ -27,7 +28,7 @@ class DashboardView extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildKpiGrid(context, avgScore, pendingForm4s, totalJobs),
           const SizedBox(height: 32),
-          _buildMainLayout(context, jobs),
+          _buildMainLayout(context, ref, aiState, jobs),
         ],
       ),
     );
@@ -172,7 +173,7 @@ class DashboardView extends ConsumerWidget {
   }
 
   /// Builds the main layout showing recent jobs and compliance feeds.
-  Widget _buildMainLayout(BuildContext context, dynamic jobs) {
+  Widget _buildMainLayout(BuildContext context, WidgetRef ref, AiAnalysisState aiState, dynamic jobs) {
     final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Flex(
@@ -184,6 +185,74 @@ class DashboardView extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Vibrant and stunning AI Compliance check card shortcut
+              GestureDetector(
+                onTap: () => ref.read(navProvider.notifier).setIndex(1),
+                child: GlassCard(
+                  borderColor: const Color(0xFF00E6FF).withOpacity(0.4),
+                  backgroundGradient: [
+                    const Color(0xFF00E6FF).withOpacity(0.09),
+                    const Color(0xFF00FF87).withOpacity(0.01),
+                  ],
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF00E6FF).withOpacity(0.12),
+                          border: Border.all(color: const Color(0xFF00E6FF).withOpacity(0.3)),
+                        ),
+                        child: const Icon(
+                          Icons.psychology_outlined,
+                          color: Color(0xFF00E6FF),
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'AI Compliance Audit Scanner',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Verify water lines, stacks, tanks, or drainage runs dynamically against AS/NZS 3500.',
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                color: Colors.white70,
+                                height: 1.35,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Daily Remaining: ${aiState.dailyRemaining} / 5 analyses',
+                              style: GoogleFonts.inter(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: aiState.canAnalyze
+                                    ? const Color(0xFF00FF87)
+                                    : const Color(0xFFFF416C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
               Text(
                 'Recent Active Sites',
                 style: GoogleFonts.outfit(

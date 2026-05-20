@@ -50,6 +50,7 @@ class DatabaseService {
           complianceScore: (data['complianceScore'] as num?)?.toDouble() ?? 1.0,
           issues: List<String>.from(data['issues'] as List? ?? []),
           form4Submitted: data['form4Submitted'] as bool? ?? false,
+          drainageSketchBase64: data['drainageSketchBase64'] as String?,
         );
       }).toList();
     });
@@ -72,6 +73,7 @@ class DatabaseService {
       'complianceScore': job.complianceScore,
       'issues': job.issues,
       'form4Submitted': job.form4Submitted,
+      'drainageSketchBase64': job.drainageSketchBase64,
     });
   }
 
