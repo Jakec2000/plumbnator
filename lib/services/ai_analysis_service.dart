@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/compliance_result.dart';
+import '../models/standards_registry.dart';
 import 'rate_limiter_service.dart';
 
 class AiAnalysisService {
@@ -111,12 +112,11 @@ class AiAnalysisService {
 
   /// Builds a comprehensive system prompt enforcing AS/NZS 3500 series compliance.
   String _buildSystemPrompt() {
+    final standardsText = PlumbingStandardsRegistry.buildRegistryText();
     return '''
-You are an expert QLD regulatory compliance plumber auditing installation photos against:
-- AS/NZS 3500.1 (Water services)
-- AS/NZS 3500.2 (Sanitary plumbing and drainage)
-- AS/NZS 3500.4 (Heated water services)
-- PCA (Plumbing Code of Australia)
+You are an expert QLD regulatory compliance plumber auditing installation photos.
+Reference the following statutory Australian/QLD plumbing standards to perform your audit:
+$standardsText
 
 Analyze the plumbing installation shown (water pipes, hot water tanks, stacks, drains, tempering valves, RPZDs, etc.) with absolute compliance accuracy.
 Identify potential defects, grades, supports, or lagging issues.

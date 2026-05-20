@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/glass_card.dart';
+import '../providers/state_providers.dart';
 
 /// Representation of a regulatory compliance reference model.
 class StandardRef {
+  /// The title of the standard guidelines.
   final String title;
+
+  /// The standard identifier or code clause.
   final String standardCode;
+
+  /// The category grouping.
   final String category;
+
+  /// Brief description of the standard purpose.
   final String description;
+
+  /// List of essential tolerance metrics.
   final List<String> keyMetrics;
 
+  /// Creates a [StandardRef] instance.
   const StandardRef({
     required this.title,
     required this.standardCode,
@@ -19,18 +31,23 @@ class StandardRef {
   });
 }
 
-/// A searchable statutory reference library for AS/NZS 3500 and QBCC plumbing rules.
-class StandardsLibraryView extends StatefulWidget {
+/// A searchable statutory reference library with integrated AI Standards Q&A Assistant.
+class StandardsLibraryView extends ConsumerStatefulWidget {
+  /// Creates a [StandardsLibraryView] instance.
   const StandardsLibraryView({super.key});
 
   @override
-  State<StandardsLibraryView> createState() => _StandardsLibraryViewState();
+  ConsumerState<StandardsLibraryView> createState() => _StandardsLibraryViewState();
 }
 
-class _StandardsLibraryViewState extends State<StandardsLibraryView> {
+class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _assistantInputController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
+  
   String _selectedCategory = 'All';
   String _searchQuery = '';
+  int _activeTab = 0; // 0 for Index, 1 for AI Assistant
 
   /// Pre-seeded database of Queensland regulatory standards guidelines.
   final List<StandardRef> _standards = const [
@@ -105,61 +122,140 @@ class _StandardsLibraryViewState extends State<StandardsLibraryView> {
   @override
   void dispose() {
     _searchController.dispose();
+    _assistantInputController.dispose();
+    _chatScrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 20),
-                _buildSearchPanel(),
-                const SizedBox(height: 16),
-                _buildCategoryChips(),
-                const SizedBox(height: 20),
-                _buildStandardsList(),
-              ],
-            ),
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 16),
+          _buildTabSelector(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _activeTab == 0
+                ? SingleChildScrollView(child: _buildStandardsIndexTab())
+                : _buildChatAssistantTab(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   /// Page title and subtitle block.
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'STANDARDS REFERENCE LIBRARY',
-          style: GoogleFonts.outfit(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
-            color: Colors.white,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'STANDARDS REFERENCE LIBRARY',
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Searchable index of AS/NZS 3500 & Queensland statutory plumbing standards',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.white60,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Searchable index of AS/NZS 3500 & Queensland statutory plumbing standards',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.white60,
+        if (_activeTab == 1)
+          IconButton(
+            icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white54, size: 22),
+            tooltip: 'Clear Chat History',
+            onPressed: () {
+              ref.read(assistantProvider.notifier).clearHistory();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Conversation history cleared.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
           ),
-        ),
       ],
     );
   }
 
-  /// Search panel input.
+  /// Tab selector switching between Search Index and AI Q&A Assistant.
+  Widget _buildTabSelector() {
+    return Row(
+      children: [
+        _buildTabButton(0, 'Regulatory Index', Icons.list_alt),
+        const SizedBox(width: 12),
+        _buildTabButton(1, 'AI Standards Assistant', Icons.psychology),
+      ],
+    );
+  }
+
+  /// Helper rendering individual tab selection buttons.
+  Widget _buildTabButton(int index, String label, IconData icon) {
+    final isSelected = _activeTab == index;
+    final color = isSelected ? const Color(0xFF00E6FF) : Colors.white24;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _activeTab = index),
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: isSelected ? const Color(0xFF00E6FF).withOpacity(0.08) : Colors.white.withOpacity(0.01),
+            border: Border.all(color: color.withOpacity(isSelected ? 0.3 : 0.1)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: isSelected ? const Color(0xFF00E6FF) : Colors.white54, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: isSelected ? Colors.white : Colors.white54,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Combines sizer filter chips and cards into the static index tab.
+  Widget _buildStandardsIndexTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSearchPanel(),
+        const SizedBox(height: 16),
+        _buildCategoryChips(),
+        const SizedBox(height: 20),
+        _buildStandardsList(),
+      ],
+    );
+  }
+
+  /// Standard search panel input.
   Widget _buildSearchPanel() {
     return GlassCard(
       borderColor: Colors.white.withOpacity(0.05),
@@ -192,7 +288,7 @@ class _StandardsLibraryViewState extends State<StandardsLibraryView> {
     );
   }
 
-  /// Category filter chips.
+  /// Category filter chips for static library index.
   Widget _buildCategoryChips() {
     final categories = ['All', 'Drainage', 'Water Supply', 'QBCC / QLD Regs'];
 
@@ -227,7 +323,7 @@ class _StandardsLibraryViewState extends State<StandardsLibraryView> {
     );
   }
 
-  /// Renders filtered standards cards.
+  /// Renders filtered list of standards.
   Widget _buildStandardsList() {
     final filtered = _standards.where((s) {
       final matchesCategory = _selectedCategory == 'All' || s.category == _selectedCategory;
@@ -311,6 +407,189 @@ class _StandardsLibraryViewState extends State<StandardsLibraryView> {
             }),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Renders the conversational Q&A assistant chat tab.
+  Widget _buildChatAssistantTab() {
+    final assistantState = ref.watch(assistantProvider);
+    return Column(
+      children: [
+        Expanded(child: _buildChatMessageList(assistantState)),
+        if (assistantState.error != null) _buildAssistantError(assistantState.error!),
+        const SizedBox(height: 8),
+        _buildQuickPromptChips(assistantState),
+        const SizedBox(height: 8),
+        _buildChatInput(assistantState),
+      ],
+    );
+  }
+
+  /// Scrollable container rendering dialogue message tiles.
+  Widget _buildChatMessageList(AssistantState state) {
+    return ListView.builder(
+      controller: _chatScrollController,
+      itemCount: state.messages.length,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemBuilder: (ctx, idx) {
+        return _buildChatMessageTile(state.messages[idx]);
+      },
+    );
+  }
+
+  /// Renders a single conversation chat bubble.
+  Widget _buildChatMessageTile(AssistantMessage msg) {
+    final isUser = msg.isUser;
+    final alignment = isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final cardBg = isUser 
+        ? const Color(0xFF00E6FF).withOpacity(0.06) 
+        : const Color(0xFF0A0F1D).withOpacity(0.6);
+    final borderCol = isUser 
+        ? const Color(0xFF00E6FF).withOpacity(0.2) 
+        : Colors.white.withOpacity(0.04);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: alignment,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(isUser ? Icons.person_outline : Icons.psychology_outlined,
+                  color: isUser ? const Color(0xFF00FF87) : const Color(0xFF00E6FF), size: 14),
+              const SizedBox(width: 6),
+              Text(
+                isUser ? 'YOU (Licensed Plumber)' : 'AI COMPLIANCE ASSISTANT',
+                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white38),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            backgroundGradient: [cardBg, cardBg],
+            borderColor: borderCol,
+            borderRadius: 12,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: SelectableText(
+                msg.text,
+                style: GoogleFonts.inter(
+                  fontSize: 12.5,
+                  color: Colors.white.withOpacity(0.9),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Interactive quick-suggestion chips that submit standard questions instantly.
+  Widget _buildQuickPromptChips(AssistantState state) {
+    final prompts = [
+      'What is PVC cover limit?',
+      'Tell me static water limits',
+      'What is QLD Form 4 timeline?'
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: prompts.map((p) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ActionChip(
+              label: Text(p, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+              backgroundColor: const Color(0xFF0A0F1D).withOpacity(0.5),
+              side: BorderSide(color: Colors.white.withOpacity(0.05)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              onPressed: state.isLoading 
+                  ? null 
+                  : () => _submitQuestion(p),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// Glassmorphic chat input area with send/loading indications.
+  Widget _buildChatInput(AssistantState state) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      borderColor: Colors.white.withOpacity(0.05),
+      borderRadius: 12,
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _assistantInputController,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: const InputDecoration(
+                hintText: 'Ask about AS/NZS 3500 gradients, cover, tempering...',
+                hintStyle: TextStyle(color: Colors.white30, fontSize: 12.5),
+                border: InputBorder.none,
+              ),
+              onSubmitted: state.isLoading ? null : (val) => _submitQuestion(val),
+            ),
+          ),
+          const SizedBox(width: 8),
+          state.isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E6FF)),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.send_rounded, color: Color(0xFF00E6FF), size: 20),
+                  onPressed: () => _submitQuestion(_assistantInputController.text),
+                ),
+        ],
+      ),
+    );
+  }
+
+  /// Submission handler routing inputs to Riverpod and auto-scrolling to the bottom.
+  void _submitQuestion(String question) {
+    final text = question.trim();
+    if (text.isEmpty) return;
+    _assistantInputController.clear();
+    ref.read(assistantProvider.notifier).sendQuestion(text);
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_chatScrollController.hasClients) {
+        _chatScrollController.animateTo(
+          _chatScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  /// Renders customized assistant error logs.
+  Widget _buildAssistantError(String err) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF416C).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Color(0xFFFF416C), size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              err,
+              style: GoogleFonts.inter(color: const Color(0xFFFF416C), fontSize: 11),
+            ),
+          ),
+        ],
       ),
     );
   }

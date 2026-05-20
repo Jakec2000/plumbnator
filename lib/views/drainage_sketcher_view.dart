@@ -30,6 +30,40 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
     final jobs = ref.watch(jobsProvider);
     final isMobile = MediaQuery.of(context).size.width < 1000;
 
+    // Safely render a premium placeholder if no active plumbing jobs exist
+    if (jobs.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: GlassCard(
+            borderColor: Colors.white.withOpacity(0.05),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.assignment_outlined, color: Color(0xFF00E6FF), size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'NO ACTIVE PLUMBING JOBS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please create a plumbing job on the Dashboard first to begin sketching statutory drainage plans.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 13, color: Colors.white60),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     // Auto-select first job if none selected
     if (_selectedJobId == null && jobs.isNotEmpty) {
       _selectedJobId = jobs.first.id;

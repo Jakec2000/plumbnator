@@ -4,6 +4,7 @@ import '../models/compliance_result.dart';
 import '../services/database_service.dart';
 import '../services/ai_analysis_service.dart';
 import '../services/rate_limiter_service.dart';
+import '../services/gemini_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Notifier that manages the plumbing jobs state and hooks into DatabaseService.
@@ -94,7 +95,7 @@ class JobsNotifier extends Notifier<List<PlumbingJob>> {
 final jobsProvider = NotifierProvider<JobsNotifier, List<PlumbingJob>>(JobsNotifier.new);
 
 /// Available calculation modes for the hydraulic compliance sizer.
-enum SizingMode { drainage, waterSupply }
+enum SizingMode { drainage, waterSupply, laserGrade }
 
 /// State structure for the Hydraulic Sizing Calculator.
 class SizingState {
@@ -103,6 +104,8 @@ class SizingState {
   final Map<String, int> waterFixtureCounts;
   final double runLength; // Trench length in meters
   final double gradePercentage; // E.g., 1.65% or 2.50%
+  final double setupStaffReading; // Setup staff reading at start (mm)
+  final double excavationOffset;  // Trench bed offset (mm)
 
   const SizingState({
     required this.sizingMode,
@@ -110,6 +113,8 @@ class SizingState {
     required this.waterFixtureCounts,
     required this.runLength,
     required this.gradePercentage,
+    required this.setupStaffReading,
+    required this.excavationOffset,
   });
 
   /// Factory for default calculator state.
@@ -134,6 +139,8 @@ class SizingState {
       },
       runLength: 15.0,
       gradePercentage: 1.65,
+      setupStaffReading: 1500.0,
+      excavationOffset: 100.0,
     );
   }
 
@@ -174,6 +181,16 @@ class SizingState {
   /// Computes the required height drop (fall) over the run length.
   double get requiredFallMm {
     return (runLength * 1000) * (gradePercentage / 100);
+  }
+
+  /// Calculates the downstream pipe invert laser staff reading (mm).
+  double get downstreamInvertStaffReading {
+    return setupStaffReading + requiredFallMm;
+  }
+
+  /// Calculates the downstream trench bed excavation laser staff reading (mm).
+  double get downstreamTrenchStaffReading {
+    return downstreamInvertStaffReading + excavationOffset;
   }
 
   /// Calculates total Loading Units (LUs) for water supply based on AS/NZS 3500.1 Table 3.2.
@@ -223,6 +240,8 @@ class SizingState {
     Map<String, int>? waterFixtureCounts,
     double? runLength,
     double? gradePercentage,
+    double? setupStaffReading,
+    double? excavationOffset,
   }) {
     return SizingState(
       sizingMode: sizingMode ?? this.sizingMode,
@@ -230,6 +249,8 @@ class SizingState {
       waterFixtureCounts: waterFixtureCounts ?? this.waterFixtureCounts,
       runLength: runLength ?? this.runLength,
       gradePercentage: gradePercentage ?? this.gradePercentage,
+      setupStaffReading: setupStaffReading ?? this.setupStaffReading,
+      excavationOffset: excavationOffset ?? this.excavationOffset,
     );
   }
 }
@@ -268,6 +289,16 @@ class SizingNotifier extends Notifier<SizingState> {
   /// Updates the grade percentage.
   void updateGradePercentage(double grade) {
     state = state.copyWith(gradePercentage: grade.clamp(0.5, 10.0));
+  }
+
+  /// Updates the laser setup staff reading.
+  void updateSetupStaffReading(double val) {
+    state = state.copyWith(setupStaffReading: val.clamp(100.0, 5000.0));
+  }
+
+  /// Updates the bedding and excavation depth offset.
+  void updateExcavationOffset(double val) {
+    state = state.copyWith(excavationOffset: val.clamp(0.0, 1000.0));
   }
 
   /// Resets sizing inputs to zero/initial states.
@@ -595,5 +626,124 @@ class BackflowNotifier extends Notifier<List<BackflowDevice>> {
 }
 
 final backflowProvider = NotifierProvider<BackflowNotifier, List<BackflowDevice>>(BackflowNotifier.new);
+
+/// Represents a message in the AI standards assistant chat history.
+class AssistantMessage {
+  /// The text content of the message.
+  final String text;
+
+  /// Whether the message is sent by the user (true) or the AI assistant (false).
+  final bool isUser;
+
+  /// The timestamp of the message.
+  final DateTime timestamp;
+
+  /// Creates a new [AssistantMessage] instance.
+  const AssistantMessage({
+    required this.text,
+    required this.isUser,
+    required this.timestamp,
+  });
+}
+
+/// The Riverpod state for the AI standards Q&A assistant.
+class AssistantState {
+  /// The list of conversation messages.
+  final List<AssistantMessage> messages;
+
+  /// Whether the assistant is currently loading a response.
+  final bool isLoading;
+
+  /// Optional error message.
+  final String? error;
+
+  /// Creates an [AssistantState] instance.
+  const AssistantState({
+    required this.messages,
+    required this.isLoading,
+    this.error,
+  });
+
+  /// Factory for the initial state of the assistant.
+  factory AssistantState.initial() {
+    return AssistantState(
+      messages: [
+        AssistantMessage(
+          text: 'Hello! I am the Plumbnator compliance assistant. Ask me anything about AS/NZS 3500 plumbing standards or Queensland QBCC notifiable work regulations.',
+          isUser: false,
+          timestamp: DateTime.now(),
+        )
+      ],
+      isLoading: false,
+    );
+  }
+
+  /// Creates a copy of the state with overridden values.
+  AssistantState copyWith({
+    List<AssistantMessage>? messages,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AssistantState(
+      messages: messages ?? this.messages,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+/// Riverpod Notifier managing Q&A assistant chat sessions.
+class AssistantNotifier extends Notifier<AssistantState> {
+  final GeminiService _geminiService = GeminiService();
+
+  @override
+  AssistantState build() {
+    return AssistantState.initial();
+  }
+
+  /// Sends a question to the AI standards model and records the response.
+  Future<void> sendQuestion(String question) async {
+    if (question.trim().isEmpty) return;
+
+    final userMsg = AssistantMessage(
+      text: question,
+      isUser: true,
+      timestamp: DateTime.now(),
+    );
+
+    state = state.copyWith(
+      messages: [...state.messages, userMsg],
+      isLoading: true,
+      error: null,
+    );
+
+    try {
+      final answer = await _geminiService.askStandardsQuestion(question);
+      final aiMsg = AssistantMessage(
+        text: answer,
+        isUser: false,
+        timestamp: DateTime.now(),
+      );
+      state = state.copyWith(
+        messages: [...state.messages, aiMsg],
+        isLoading: false,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to receive a response from AI. Please try again.',
+      );
+    }
+  }
+
+  /// Clears the conversation history back to the initial message.
+  void clearHistory() {
+    state = AssistantState.initial();
+  }
+}
+
+/// Provider for the AI standards assistant state.
+final assistantProvider = NotifierProvider<AssistantNotifier, AssistantState>(AssistantNotifier.new);
+
 
 

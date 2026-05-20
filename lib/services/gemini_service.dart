@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import '../models/standards_registry.dart';
 
 /// Service class interfacing with Google Generative AI for AS/NZS compliance vision checks.
 class GeminiService {
@@ -71,6 +72,86 @@ Return a structured JSON document conforming to the following Dart parsing schem
   "correctiveSteps": []
 }
 Ensure all coordinate offsets "x" and "y" are normalized doubles between 0.0 and 1.0 representing the relative location of key inspection points on the image canvas.
+''';
+  }
+
+  /// Asks a regulatory compliance question to the AI, pre-loaded with the standards library.
+  /// Falls back to a local compliance engine if the Gemini API key is not supplied.
+  Future<String> askStandardsQuestion(String question) async {
+    if (_apiKey.isEmpty) {
+      return _generateLocalAnswerFallback(question);
+    }
+
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: _apiKey,
+      );
+
+      final standardsText = PlumbingStandardsRegistry.buildRegistryText();
+      final systemPrompt = '''
+You are the Plumbnator QLD AI Assistant, a highly experienced Australian plumbing compliance inspector.
+Your goal is to answer plumbing regulatory questions with absolute accuracy.
+You have access to the following Australian/QLD plumbing standards:
+$standardsText
+
+When answering:
+1. Cite the exact AS/NZS or QBCC standard code and clause number.
+2. Outline the exact metrics, heights, or clearances in a clear bulleted format.
+3. Provide the official compliance checklist steps.
+4. Keep the tone professional, helpful, and premium.
+''';
+
+      final content = [
+        Content.text(systemPrompt),
+        Content.text('User Question: $question'),
+      ];
+
+      final response = await model.generateContent(content);
+      return response.text ?? _generateLocalAnswerFallback(question);
+    } catch (_) {
+      return _generateLocalAnswerFallback(question);
+    }
+  }
+
+  /// Generates highly detailed and clause-cited local answers for common standards questions.
+  String _generateLocalAnswerFallback(String question) {
+    final query = question.toLowerCase();
+    
+    // Find matching clause in the registry
+    PlumbingStandardClause? matched;
+    for (final c in PlumbingStandardsRegistry.clauses) {
+      final words = c.category.toLowerCase().split(' ') + c.title.toLowerCase().split(' ');
+      if (words.any((w) => w.length > 3 && query.contains(w)) ||
+          query.contains(c.clauseNumber.toLowerCase()) ||
+          query.contains(c.standardCode.toLowerCase())) {
+        matched = c;
+        break;
+      }
+    }
+    
+    // Default to the first matching clause or cover if nothing else matches
+    matched ??= PlumbingStandardsRegistry.clauses.firstWhere(
+      (c) => query.contains('cover') || query.contains('pvc') || query.contains('depth'),
+      orElse: () => PlumbingStandardsRegistry.clauses.first,
+    );
+
+    return '''
+### 🔍 AI Compliance Assistant Response
+
+**Standard Reference**: `${matched.standardCode} ${matched.clauseNumber}`
+**Topic**: `${matched.title}`
+
+${matched.summaryText}
+
+#### 📋 Statutory Metrics & Tolerances:
+${matched.technicalMetrics.map((m) => '- **$m**').join('\n')}
+
+#### 🛠️ Mandatory Compliance Checklist:
+${matched.complianceChecklist.map((c) => '- [x] $c').join('\n')}
+
+---
+*⚠️ Note: Running in local diagnostic fallback mode. All references comply with Queensland QBCC and AS/NZS 3500 regulations.*
 ''';
   }
 
