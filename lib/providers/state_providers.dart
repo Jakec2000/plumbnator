@@ -657,10 +657,14 @@ class AssistantState {
   /// Optional error message.
   final String? error;
 
+  /// The currently selected AI model engine.
+  final String selectedModel;
+
   /// Creates an [AssistantState] instance.
   const AssistantState({
     required this.messages,
     required this.isLoading,
+    required this.selectedModel,
     this.error,
   });
 
@@ -675,6 +679,7 @@ class AssistantState {
         )
       ],
       isLoading: false,
+      selectedModel: 'Grok 4.3',
     );
   }
 
@@ -683,10 +688,12 @@ class AssistantState {
     List<AssistantMessage>? messages,
     bool? isLoading,
     String? error,
+    String? selectedModel,
   }) {
     return AssistantState(
       messages: messages ?? this.messages,
       isLoading: isLoading ?? this.isLoading,
+      selectedModel: selectedModel ?? this.selectedModel,
       error: error,
     );
   }
@@ -699,6 +706,11 @@ class AssistantNotifier extends Notifier<AssistantState> {
   @override
   AssistantState build() {
     return AssistantState.initial();
+  }
+
+  /// Changes the active AI model engine.
+  void selectModel(String model) {
+    state = state.copyWith(selectedModel: model);
   }
 
   /// Sends a question to the AI standards model and records the response.
@@ -718,7 +730,10 @@ class AssistantNotifier extends Notifier<AssistantState> {
     );
 
     try {
-      final answer = await _geminiService.askStandardsQuestion(question);
+      final answer = await _geminiService.askStandardsQuestion(
+        question,
+        model: state.selectedModel,
+      );
       final aiMsg = AssistantMessage(
         text: answer,
         isUser: false,
@@ -738,7 +753,7 @@ class AssistantNotifier extends Notifier<AssistantState> {
 
   /// Clears the conversation history back to the initial message.
   void clearHistory() {
-    state = AssistantState.initial();
+    state = AssistantState.initial().copyWith(selectedModel: state.selectedModel);
   }
 }
 

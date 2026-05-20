@@ -18,21 +18,197 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="AS/NZS 3500 Hydraulic Sizing & QBCC Compliance Suite.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="plumbnator">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Plumbnator">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>plumbnator</title>
+  <title>Plumbnator QLD</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Instant Visual Bootloader Styling (Sub-100ms Paint) -->
+  <style>
+    body {
+      background-color: #070B14;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      background: radial-gradient(circle at center, #0B1226 0%, #070B14 100%);
+      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    .brand-icon {
+      color: #00E6FF;
+      font-size: 32px;
+      margin-right: 12px;
+      display: inline-block;
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #FFFFFF;
+      text-shadow: 0 0 15px rgba(0, 230, 255, 0.4);
+    }
+
+    /* Premium Dual-Gradient Pulse Spinner */
+    .spinner-box {
+      width: 70px;
+      height: 70px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .spinner-ring {
+      box-sizing: border-box;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .spinner-ring.cyan {
+      border-top-color: #00E6FF;
+      animation-delay: -0.15s;
+      box-shadow: 0 0 15px rgba(0, 230, 255, 0.2);
+    }
+
+    .spinner-ring.green {
+      border-right-color: #00FF87;
+      animation-delay: -0.3s;
+      box-shadow: 0 0 15px rgba(0, 255, 135, 0.2);
+    }
+
+    .loading-status {
+      margin-top: 32px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #00E6FF;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.8;
+      animation: text-pulse 1.5s infinite ease-in-out;
+    }
+
+    .loading-compliance {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #8C9BAE;
+      opacity: 0.5;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.02); filter: brightness(1.2); }
+    }
+
+    @keyframes text-pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .fade-out {
+      opacity: 0 !important;
+      transform: scale(1.05) !important;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <!-- Premium Glowing HTML Splash Screen -->
+  <div id="loading-splash">
+    <div class="brand-container">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-title">PLUMBNATOR QLD</span>
+    </div>
+    
+    <div class="spinner-box">
+      <div class="spinner-ring cyan"></div>
+      <div class="spinner-ring green"></div>
+    </div>
+    
+    <div class="loading-status">Booting Compliant Hydraulic Engine...</div>
+    <div class="loading-compliance">AS/NZS 3500 Compliance Suite</div>
+  </div>
+
+  <!-- Lightweight DOM Handshake Observer -->
+  <script>
+    (function () {
+      var splash = document.getElementById('loading-splash');
+      if (!splash) return;
+
+      // Observe the body for the injection of Flutter views
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          for (var i = 0; i < mutation.addedNodes.length; i++) {
+            var node = mutation.addedNodes[i];
+            // Check if the added node is a flutter-view tag or holds the Flutter canvas
+            if (node.nodeName === 'FLUTTER-VIEW' || (node.tagName && node.querySelector('canvas'))) {
+              dismissSplash();
+              observer.disconnect();
+              return;
+            }
+          }
+        });
+      });
+
+      observer.observe(document.body, { childList: true });
+
+      function dismissSplash() {
+        splash.classList.add('fade-out');
+        setTimeout(function () {
+          if (splash.parentNode) {
+            splash.parentNode.removeChild(splash);
+          }
+        }, 500); // Remove completely after transition completes
+      }
+
+      // Safeguard timeout (if Flutter engine fails to load after 12s, release controls)
+      setTimeout(function () {
+        dismissSplash();
+        observer.disconnect();
+      }, 12000);
+    })();
+  </script>
+
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

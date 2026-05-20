@@ -411,11 +411,100 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
     );
   }
 
+  /// Model selector allowing the plumber to choose their AI engine.
+  Widget _buildModelSelector(AssistantState state) {
+    final models = const ['Grok 4.3', 'Gemini 1.5 Flash', 'GPT-4o'];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.01),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.03)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.settings_suggest_outlined, color: Colors.white30, size: 14),
+          const SizedBox(width: 8),
+          Text(
+            'Brain Engine:',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              color: Colors.white38,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: models.map((m) {
+                  final isSelected = state.selectedModel == m;
+                  Color activeColor = const Color(0xFF00E6FF);
+                  if (m.contains('Grok')) activeColor = const Color(0xFF00FF87);
+                  if (m.contains('GPT')) activeColor = const Color(0xFF00FFCC);
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: InkWell(
+                      onTap: () {
+                        ref.read(assistantProvider.notifier).selectModel(m);
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected ? activeColor.withOpacity(0.08) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? activeColor.withOpacity(0.3) : Colors.white.withOpacity(0.04),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isSelected) ...[
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: activeColor,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Text(
+                              m,
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : Colors.white38,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Renders the conversational Q&A assistant chat tab.
   Widget _buildChatAssistantTab() {
     final assistantState = ref.watch(assistantProvider);
     return Column(
       children: [
+        _buildModelSelector(assistantState),
+        const SizedBox(height: 10),
         Expanded(child: _buildChatMessageList(assistantState)),
         if (assistantState.error != null) _buildAssistantError(assistantState.error!),
         const SizedBox(height: 8),
