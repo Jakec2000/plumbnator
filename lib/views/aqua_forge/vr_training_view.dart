@@ -64,8 +64,8 @@ class _VrTrainingModuleState extends State<VrTrainingModule> {
                   height: 60,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.8), width: 3),
-                    color: Colors.red.withOpacity(0.3),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.8), width: 3),
+                    color: Colors.red.withValues(alpha: 0.3),
                   ),
                   child: const Center(
                     child: Icon(Icons.search, color: Colors.white, size: 30),
@@ -81,9 +81,9 @@ class _VrTrainingModuleState extends State<VrTrainingModule> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.cyanAccent.withOpacity(0.5)),
+                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

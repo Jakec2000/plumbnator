@@ -31,7 +31,7 @@ class HomeownerDashboard extends StatelessWidget {
               final data = alerts[index].data() as Map<String, dynamic>;
               final isCritical = data['status'] == 'critical';
               return Card(
-                color: isCritical ? Colors.red.shade900.withOpacity(0.5) : Colors.yellow.shade900.withOpacity(0.5),
+                color: isCritical ? Colors.red.shade900.withValues(alpha: 0.5) : Colors.yellow.shade900.withValues(alpha: 0.5),
                 child: ListTile(
                   leading: Icon(isCritical ? Icons.warning : Icons.info_outline, color: isCritical ? Colors.redAccent : Colors.yellowAccent),
                   title: Text(data['title'] ?? 'Anomaly Detected', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),

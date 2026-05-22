@@ -40,7 +40,7 @@ class ProDashboard extends StatelessWidget {
               final data = jobDoc.data() as Map<String, dynamic>;
               
               return Card(
-                color: Colors.blue.shade900.withOpacity(0.3),
+                color: Colors.blue.shade900.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(side: const BorderSide(color: Colors.blueAccent, width: 1), borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),

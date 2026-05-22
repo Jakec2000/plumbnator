@@ -140,7 +140,7 @@ class GasComplianceView extends ConsumerWidget {
           SwitchListTile(
             title: const Text('Vents Correctly Aligned (Upper/Lower)', style: TextStyle(fontSize: 13)),
             value: state.ventsProperlyPositioned,
-            activeColor: const Color(0xFF00E6FF),
+            activeThumbColor: const Color(0xFF00E6FF),
             onChanged: notifier.updateVentPositioned,
             contentPadding: EdgeInsets.zero,
           ),
@@ -254,7 +254,7 @@ class GasComplianceView extends ConsumerWidget {
   /// Dropdown for Nominal Diameters.
   Widget _buildDiameterDropdown(GasComplianceState state, GasComplianceNotifier notifier) {
     return DropdownButtonFormField<String>(
-      value: state.pipeDiameter,
+      initialValue: state.pipeDiameter,
       dropdownColor: const Color(0xFF0F172A),
       decoration: const InputDecoration(
         labelText: 'Nominal Pipe Diameter (DN)',
@@ -280,14 +280,14 @@ class GasComplianceView extends ConsumerWidget {
         SwitchListTile(
           title: const Text('Combined Pressure Regulator', style: TextStyle(fontSize: 13)),
           value: state.regulatorInstalled,
-          activeColor: const Color(0xFF00E6FF),
+          activeThumbColor: const Color(0xFF00E6FF),
           onChanged: notifier.updateRegulator,
           contentPadding: EdgeInsets.zero,
         ),
         SwitchListTile(
           title: const Text('Auto Solenoid Leak Shutoff', style: TextStyle(fontSize: 13)),
           value: state.hasSolenoidShutoff,
-          activeColor: const Color(0xFF00FF87),
+          activeThumbColor: const Color(0xFF00FF87),
           onChanged: notifier.updateSolenoid,
           contentPadding: EdgeInsets.zero,
         ),

@@ -14,6 +14,7 @@ import 'views/standards_library_view.dart';
 import 'views/solar_compliance_view.dart';
 import 'views/stormwater_compliance_view.dart';
 import 'views/gas_compliance_view.dart';
+import 'views/aqua_forge/role_selection_view.dart';
 import 'providers/state_providers.dart';
 
 
@@ -81,6 +82,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
     SolarComplianceView(),
     StormwaterComplianceView(),
     GasComplianceView(),
+    RoleSelectionScreen(),
   ];
 
   @override
@@ -199,6 +201,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
                           _buildDrawerItem(8, 'Solar / Heat Pump', Icons.solar_power_outlined, currentIndex),
                           _buildDrawerItem(9, 'Stormwater Sizer', Icons.thunderstorm_outlined, currentIndex),
                           _buildDrawerItem(10, 'Gas Pipe Sizer', Icons.local_fire_department_outlined, currentIndex),
+                          _buildDrawerItem(11, 'AquaForge AI', Icons.water_drop_outlined, currentIndex),
                         ],
                       ),
                     ),
@@ -263,6 +266,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
           _buildSidebarItem(8, 'Solar / Heat Pump', Icons.solar_power_outlined, currentIndex),
           _buildSidebarItem(9, 'Stormwater Sizer', Icons.thunderstorm_outlined, currentIndex),
           _buildSidebarItem(10, 'Gas Pipe Sizer', Icons.local_fire_department_outlined, currentIndex),
+          _buildSidebarItem(11, 'AquaForge AI', Icons.water_drop_outlined, currentIndex),
           const Spacer(),
           _buildLicenseFooter(),
         ],
@@ -381,7 +385,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
   /// Standard bottom navigation bar for mobile size displays.
   Widget _buildBottomNavBar(int currentIndex) {
     return NavigationBar(
-      selectedIndex: currentIndex >= 9 ? 0 : currentIndex,
+      selectedIndex: currentIndex >= 10 ? 0 : currentIndex,
       onDestinationSelected: (idx) => ref.read(navProvider.notifier).setIndex(idx),
       backgroundColor: const Color(0xFF0A0F1D),
       indicatorColor: const Color(0xFF00E6FF).withOpacity(0.15),
@@ -431,6 +435,11 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
           icon: Icon(Icons.solar_power_outlined),
           selectedIcon: Icon(Icons.solar_power, color: Color(0xFF00E6FF)),
           label: 'Solar/HP',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.water_drop_outlined),
+          selectedIcon: Icon(Icons.water_drop, color: Color(0xFF00E6FF)),
+          label: 'AquaForge',
         ),
       ],
     );

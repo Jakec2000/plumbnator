@@ -3,7 +3,6 @@ import '../models/models.dart';
 import '../models/compliance_result.dart';
 import '../services/database_service.dart';
 import '../services/ai_analysis_service.dart';
-import '../services/rate_limiter_service.dart';
 import '../services/gemini_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;

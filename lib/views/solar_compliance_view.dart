@@ -274,7 +274,7 @@ class LeftTelemetryPanel extends ConsumerWidget {
         Expanded(child: Text(label, style: GoogleFonts.inter(fontSize: 11, color: Colors.white70))),
         Switch(
           value: value,
-          activeColor: Colors.cyanAccent,
+          activeThumbColor: Colors.cyanAccent,
           activeTrackColor: Colors.cyan.withOpacity(0.5),
           inactiveThumbColor: Colors.white54,
           inactiveTrackColor: Colors.white12,

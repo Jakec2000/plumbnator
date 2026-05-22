@@ -269,7 +269,7 @@ class StormwaterComplianceView extends ConsumerWidget {
         ] else ...[
           const SizedBox(height: 12),
           DropdownButtonFormField<double>(
-            value: state.boxGutterSlope,
+            initialValue: state.boxGutterSlope,
             dropdownColor: const Color(0xFF0F172A),
             decoration: const InputDecoration(
               labelText: 'Box Gutter Slope Ratio',
@@ -321,7 +321,7 @@ class StormwaterComplianceView extends ConsumerWidget {
           SwitchListTile(
             title: const Text('Slotted Overflow Face', style: TextStyle(fontSize: 13)),
             value: state.slottedOverflow,
-            activeColor: const Color(0xFF00FF87),
+            activeThumbColor: const Color(0xFF00FF87),
             onChanged: notifier.updateSlotted,
             contentPadding: EdgeInsets.zero,
           )
@@ -329,7 +329,7 @@ class StormwaterComplianceView extends ConsumerWidget {
           SwitchListTile(
             title: const Text('Rainhead / Sump Overflow Weir', style: TextStyle(fontSize: 13)),
             value: state.rainheadOverflow,
-            activeColor: const Color(0xFF00FF87),
+            activeThumbColor: const Color(0xFF00FF87),
             onChanged: notifier.updateRainhead,
             contentPadding: EdgeInsets.zero,
           ),
