@@ -1,0 +1,24 @@
+{
+  "name": "aquaforge-ai-backend",
+  "version": "1.0.0",
+  "description": "AquaForge AI Edge Functions",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^4.5.0",
+    "@google/genai": "^0.1.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}

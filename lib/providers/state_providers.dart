@@ -6,6 +6,8 @@ import '../services/ai_analysis_service.dart';
 import '../services/rate_limiter_service.dart';
 import '../services/gemini_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
+
 
 /// Notifier that manages the plumbing jobs state and hooks into DatabaseService.
 class JobsNotifier extends Notifier<List<PlumbingJob>> {
@@ -759,6 +761,678 @@ class AssistantNotifier extends Notifier<AssistantState> {
 
 /// Provider for the AI standards assistant state.
 final assistantProvider = NotifierProvider<AssistantNotifier, AssistantState>(AssistantNotifier.new);
+
+/// State structure for the Solar & Heat Pump Compliance Sizer.
+class SolarComplianceState {
+  final String zone; // 'Zone 1' (Tropical), 'Zone 2' (Brisbane), 'Zone 3' (Darling Downs)
+  final String techType; // 'Solar Flat Plate', 'Solar Evacuated Tubes', 'Heat Pump'
+  final int bedrooms; // 1 to 5 (5 means 5+)
+  final int occupants; // 1 to 10
+  final double dailyDemand; // L/day
+  final double collectorTilt; // degrees
+  final String orientation; // 'North', 'East', 'West', 'South'
+  final double setpointTemp; // °C
+  final int ptrRatingKpa; // kPa (e.g. 850)
+  final int ecvRatingKpa; // kPa (e.g. 700)
+  final int plvSettingKpa; // kPa (e.g. 500)
+  final double shadingFactor; // % (0 to 80)
+  final bool heatTrapInstalled; // AS/NZS 3500.4 Cl 8.2.2
+  final bool hasFrostProtection; // AS/NZS 3500.4 Cl 8.5
+  final double boundaryDistance; // meters (QLD EPA Noise limits)
+  final bool isInternal; // Cylinder location
+  final bool safeTrayInstalled; // AS/NZS 3500.4 Cl 4.6
+  final bool reliefIsCopper; // AS/NZS 3500.4 Cl 5.12
+  final bool duoValveInstalled; // AS/NZS 3500.4 Cl 5.2
+  final String facilityType; // 'Standard' (50°C), 'Special' (45°C TMV limits)
+
+  const SolarComplianceState({
+    required this.zone,
+    required this.techType,
+    required this.bedrooms,
+    required this.occupants,
+    required this.dailyDemand,
+    required this.collectorTilt,
+    required this.orientation,
+    required this.setpointTemp,
+    required this.ptrRatingKpa,
+    required this.ecvRatingKpa,
+    required this.plvSettingKpa,
+    required this.shadingFactor,
+    required this.heatTrapInstalled,
+    required this.hasFrostProtection,
+    required this.boundaryDistance,
+    required this.isInternal,
+    required this.safeTrayInstalled,
+    required this.reliefIsCopper,
+    required this.duoValveInstalled,
+    required this.facilityType,
+  });
+
+  /// Factory for default compliant initial state.
+  factory SolarComplianceState.initial() {
+    return const SolarComplianceState(
+      zone: 'Zone 2',
+      techType: 'Solar Flat Plate',
+      bedrooms: 3,
+      occupants: 4,
+      dailyDemand: 250.0,
+      collectorTilt: 30.0,
+      orientation: 'North',
+      setpointTemp: 60.0,
+      ptrRatingKpa: 850,
+      ecvRatingKpa: 700,
+      plvSettingKpa: 500,
+      shadingFactor: 0.0,
+      heatTrapInstalled: true,
+      hasFrostProtection: false,
+      boundaryDistance: 5.0,
+      isInternal: false,
+      safeTrayInstalled: false,
+      reliefIsCopper: true,
+      duoValveInstalled: true,
+      facilityType: 'Standard',
+    );
+  }
+
+  /// Calculates demand volume from bedroom limits.
+  double get calculatedDemandFromBedrooms {
+    if (bedrooms <= 2) return 150.0;
+    if (bedrooms <= 4) return 250.0;
+    return 350.0;
+  }
+
+  /// Calculates demand volume from occupants count.
+  double get calculatedDemandFromOccupants => occupants * 75.0;
+
+  /// Legionella control compliance under AS/NZS 3500.4 Cl 4.2.
+  bool get isLegionellaCompliant => setpointTemp >= 60.0;
+
+  /// Mains pressure limit check under AS/NZS 3500.4/1 Cl 5.4.
+  bool get isPlvCompliant => plvSettingKpa <= 500;
+
+  /// ECV delta gap coordination (ECV rating >= PLV + 100 kPa).
+  bool get isEcvCompliant => ecvRatingKpa >= (plvSettingKpa + 100);
+
+  /// PTR delta gap coordination (PTR rating >= ECV + 150 kPa).
+  bool get isPtrCompliant => ptrRatingKpa >= (ecvRatingKpa + 150);
+
+  /// Checks full valve chain clearance compliance.
+  bool get isValveChainCompliant => isPlvCompliant && isEcvCompliant && isPtrCompliant;
+
+  /// Suggests the insulation R-value required for external piping.
+  double get requiredInsulationRValue => zone == 'Zone 3' ? 0.6 : 0.3;
+
+  /// Gives structural recommendations for pipe insulation wrapper under Section 8.
+  String get insulationRecommendation => zone == 'Zone 3'
+      ? 'Min 25mm closed-cell rubber sleeve (R0.6 required due to frost)'
+      : 'Min 13mm closed-cell polyolefin sleeve (R0.3 compliant)';
+
+  /// Frost freeze compliance under AS/NZS 3500.4 Cl 8.5.
+  bool get isFrostCompliant => zone != 'Zone 3' || hasFrostProtection;
+
+  /// Heat trap thermosiphon compliance under Cl 8.2.2.
+  bool get isHeatTrapCompliant => heatTrapInstalled;
+
+  /// Safe tray overflow drainage compliance under Cl 4.6.
+  bool get isSafeTrayCompliant => !isInternal || safeTrayInstalled;
+
+  /// Relief line metallic copper material check under Cl 5.12.
+  bool get isReliefLineCompliant => reliefIsCopper;
+
+  /// Combined inlet Duo valve check under Cl 5.2.
+  bool get isDuoValveCompliant => duoValveInstalled;
+
+  /// QLD Environmental Protection Regulation acoustic compliance.
+  bool get isAcousticCompliant => techType != 'Heat Pump' || boundaryDistance >= 3.0;
+
+  /// Cyclone Region C/D mount framing required under AS/NZS 1170.2.
+  bool get requiresCycloneMounting => zone == 'Zone 1' && techType != 'Heat Pump';
+
+  /// QLD WHS safety harness compliance rules on high pitch.
+  bool get requiresWhsRoofHarness => collectorTilt > 30.0 && techType != 'Heat Pump';
+
+  /// Maximum tempered hot water delivery limit under PCA B2.
+  int get maxTargetDeliveryTemp => facilityType == 'Special' ? 45 : 50;
+
+  /// Aggregate sizer compliance flag.
+  bool get isFullyCompliant =>
+      isLegionellaCompliant &&
+      isValveChainCompliant &&
+      isFrostCompliant &&
+      isHeatTrapCompliant &&
+      isSafeTrayCompliant &&
+      isReliefLineCompliant &&
+      isDuoValveCompliant &&
+      isAcousticCompliant;
+
+  /// Estimates the Coefficient of Performance based on QLD climate zone ambient averages.
+  double get estimatedCop {
+    if (techType != 'Heat Pump') return 0.0;
+    if (zone == 'Zone 1') return 4.5;
+    if (zone == 'Zone 2') return 4.0;
+    return 3.2; // Zone 3 (Darling Downs) lower average
+  }
+
+  /// Calculates collector orientation efficiency penalty scale.
+  double get orientationFactor {
+    switch (orientation) {
+      case 'North':
+        return 1.0;
+      case 'East':
+      case 'West':
+        return techType == 'Solar Evacuated Tubes' ? 0.85 : 0.80;
+      default:
+        return techType == 'Solar Evacuated Tubes' ? 0.45 : 0.40;
+    }
+  }
+
+  /// Computes annual electricity reduction in kilowatt hours (kWh).
+  double get annualEnergySavingsKwh {
+    final demandFactor = dailyDemand / 250.0;
+    final baseEnergy = 3600.0 * demandFactor;
+    if (techType == 'Heat Pump') {
+      final cop = estimatedCop;
+      return cop > 0 ? baseEnergy - (baseEnergy / cop) : 0.0;
+    }
+    final eff = techType == 'Solar Evacuated Tubes' ? 0.75 : 0.65;
+    return baseEnergy * eff * orientationFactor * (1.0 - shadingFactor / 100.0);
+  }
+
+  /// Annual financial yield savings ($ AUD) at 33c per kWh average tariff.
+  double get annualSavingsAud => annualEnergySavingsKwh * 0.33;
+
+  /// Estimated reduction in greenhouse emissions (kg CO2) at QLD grid factor of 0.85.
+  double get annualCarbonReductionKg => annualEnergySavingsKwh * 0.85;
+
+  /// Computes the Small-scale Technology Certificates (STCs) rebate asset count.
+  double get calculatedStcs {
+    final baseStcs = zone == 'Zone 1' ? 28.0 : zone == 'Zone 2' ? 26.0 : 24.0;
+    final demandFactor = dailyDemand / 250.0;
+    final stcs = baseStcs * demandFactor * orientationFactor * (1.0 - shadingFactor / 100.0);
+    return stcs.clamp(0.0, 60.0);
+  }
+
+  /// Calculated rebate in AUD ($38 per certificate).
+  double get estimatedStcRebate => calculatedStcs * 38.0;
+
+  /// Returns optimized daily auxiliary boost cycle suggestion advice.
+  String get recommendedBoostSchedule {
+    if (techType == 'Heat Pump') {
+      return 'Run compressor 10:00 AM - 3:00 PM to capture highest ambient temperature for maximum COP efficiency.';
+    }
+    return 'Schedule electric element to boost 1:00 PM - 2:00 PM (maximizes peak solar thermal absorption) or 5:00 AM - 6:00 AM for early trade shifts.';
+  }
+
+  /// Clones compliance sizer state overrides.
+  SolarComplianceState copyWith({
+    String? zone,
+    String? techType,
+    int? bedrooms,
+    int? occupants,
+    double? dailyDemand,
+    double? collectorTilt,
+    String? orientation,
+    double? setpointTemp,
+    int? ptrRatingKpa,
+    int? ecvRatingKpa,
+    int? plvSettingKpa,
+    double? shadingFactor,
+    bool? heatTrapInstalled,
+    bool? hasFrostProtection,
+    double? boundaryDistance,
+    bool? isInternal,
+    bool? safeTrayInstalled,
+    bool? reliefIsCopper,
+    bool? duoValveInstalled,
+    String? facilityType,
+  }) {
+    return SolarComplianceState(
+      zone: zone ?? this.zone,
+      techType: techType ?? this.techType,
+      bedrooms: bedrooms ?? this.bedrooms,
+      occupants: occupants ?? this.occupants,
+      dailyDemand: dailyDemand ?? this.dailyDemand,
+      collectorTilt: collectorTilt ?? this.collectorTilt,
+      orientation: orientation ?? this.orientation,
+      setpointTemp: setpointTemp ?? this.setpointTemp,
+      ptrRatingKpa: ptrRatingKpa ?? this.ptrRatingKpa,
+      ecvRatingKpa: ecvRatingKpa ?? this.ecvRatingKpa,
+      plvSettingKpa: plvSettingKpa ?? this.plvSettingKpa,
+      shadingFactor: shadingFactor ?? this.shadingFactor,
+      heatTrapInstalled: heatTrapInstalled ?? this.heatTrapInstalled,
+      hasFrostProtection: hasFrostProtection ?? this.hasFrostProtection,
+      boundaryDistance: boundaryDistance ?? this.boundaryDistance,
+      isInternal: isInternal ?? this.isInternal,
+      safeTrayInstalled: safeTrayInstalled ?? this.safeTrayInstalled,
+      reliefIsCopper: reliefIsCopper ?? this.reliefIsCopper,
+      duoValveInstalled: duoValveInstalled ?? this.duoValveInstalled,
+      facilityType: facilityType ?? this.facilityType,
+    );
+  }
+}
+
+/// Riverpod notifier managing compliance sizer telemetry and operations.
+class SolarComplianceNotifier extends Notifier<SolarComplianceState> {
+  @override
+  SolarComplianceState build() {
+    return SolarComplianceState.initial();
+  }
+
+  void updateZone(String zone) => state = state.copyWith(zone: zone);
+  void updateTech(String tech) => state = state.copyWith(techType: tech);
+  void updateBedrooms(int beds) => state = state.copyWith(bedrooms: beds);
+  void updateOccupants(int occs) => state = state.copyWith(occupants: occs);
+  void updateDemand(double demand) => state = state.copyWith(dailyDemand: demand);
+  void updateTilt(double tilt) => state = state.copyWith(collectorTilt: tilt);
+  void updateOrientation(String orientation) => state = state.copyWith(orientation: orientation);
+  void updateSetpoint(double setpoint) => state = state.copyWith(setpointTemp: setpoint);
+  void updatePtr(int ptr) => state = state.copyWith(ptrRatingKpa: ptr);
+  void updateEcv(int ecv) => state = state.copyWith(ecvRatingKpa: ecv);
+  void updatePlv(int plv) => state = state.copyWith(plvSettingKpa: plv);
+  void updateShading(double shading) => state = state.copyWith(shadingFactor: shading);
+  void updateHeatTrap(bool val) => state = state.copyWith(heatTrapInstalled: val);
+  void updateFrost(bool val) => state = state.copyWith(hasFrostProtection: val);
+  void updateBoundary(double boundary) => state = state.copyWith(boundaryDistance: boundary);
+  void updateInternal(bool val) => state = state.copyWith(isInternal: val);
+  void updateSafeTray(bool val) => state = state.copyWith(safeTrayInstalled: val);
+  void updateReliefCopper(bool val) => state = state.copyWith(reliefIsCopper: val);
+  void updateDuoValve(bool val) => state = state.copyWith(duoValveInstalled: val);
+  void updateFacility(String facility) => state = state.copyWith(facilityType: facility);
+
+  /// Synchronizes volume demand using standard occupants coefficients.
+  void setDemandFromOccupants() {
+    state = state.copyWith(dailyDemand: state.calculatedDemandFromOccupants);
+  }
+
+  /// Synchronizes volume demand using standard bedroom guidelines.
+  void setDemandFromBedrooms() {
+    state = state.copyWith(dailyDemand: state.calculatedDemandFromBedrooms);
+  }
+
+  /// Resets sizer inputs to defaults.
+  void reset() => state = SolarComplianceState.initial();
+}
+
+/// Provider for Solar & Heat Pump Compliance state.
+final solarComplianceProvider = NotifierProvider<SolarComplianceNotifier, SolarComplianceState>(SolarComplianceNotifier.new);
+
+/// State structure for Stormwater Drainage & Gutter Sizer (AS/NZS 3500.3).
+class StormwaterComplianceState {
+  final double roofLength;
+  final double roofWidth;
+  final double roofPitch; // degrees
+  final String rainfallZone; // 'Brisbane', 'Cairns', 'Toowoomba'
+  final String gutterType; // 'Eaves Gutter', 'Box Gutter'
+  final String gutterProfile; // 'Quad PVC' (Cheapest), 'Colorbond Slotted' (Premium)
+  final String downpipeStyle; // 'Round', 'Rectangular'
+  final double boxGutterSlope; // e.g. 100 for 1:100, 200 for 1:200, 500 for 1:500
+  final bool slottedOverflow;
+  final bool rainheadOverflow;
+  final int downpipeCount;
+
+  const StormwaterComplianceState({
+    required this.roofLength,
+    required this.roofWidth,
+    required this.roofPitch,
+    required this.rainfallZone,
+    required this.gutterType,
+    required this.gutterProfile,
+    required this.downpipeStyle,
+    required this.boxGutterSlope,
+    required this.slottedOverflow,
+    required this.rainheadOverflow,
+    required this.downpipeCount,
+  });
+
+  /// Factory for default compliant initial state.
+  factory StormwaterComplianceState.initial() {
+    return const StormwaterComplianceState(
+      roofLength: 15.0,
+      roofWidth: 8.0,
+      roofPitch: 22.5,
+      rainfallZone: 'Brisbane',
+      gutterType: 'Eaves Gutter',
+      gutterProfile: 'Quad PVC',
+      downpipeStyle: 'Round',
+      boxGutterSlope: 200.0,
+      slottedOverflow: true,
+      rainheadOverflow: false,
+      downpipeCount: 2,
+    );
+  }
+
+  /// Calculates effective roof area in square meters.
+  double get effectiveCatchmentArea {
+    final slopeRad = roofPitch * math.pi / 180.0;
+    return roofLength * roofWidth * (1.0 + 0.5 * math.tan(slopeRad));
+  }
+
+  /// Gets rainfall intensity in mm/hr based on selected zone.
+  double get rainfallIntensity {
+    if (rainfallZone == 'Cairns') return 320.0;
+    if (rainfallZone == 'Toowoomba') return 250.0;
+    return 280.0; // Brisbane
+  }
+
+  /// Calculates total flow rate in L/s.
+  double get totalFlowRate {
+    return (rainfallIntensity * effectiveCatchmentArea) / 3600.0;
+  }
+
+  /// Calculates flow rate per downpipe in L/s.
+  double get flowRatePerDownpipe {
+    return downpipeCount > 0 ? totalFlowRate / downpipeCount : totalFlowRate;
+  }
+
+  /// Calculates downstream downpipe sizer recommended size.
+  String get recommendedDownpipeSize {
+    final flow = flowRatePerDownpipe;
+    if (downpipeStyle == 'Round') {
+      if (flow <= 3.5) return 'DN90';
+      if (flow <= 5.0) return 'DN100';
+      return 'DN150';
+    } else {
+      if (flow <= 3.0) return '100x50 mm';
+      if (flow <= 4.5) return '100x75 mm';
+      return '125x125 mm';
+    }
+  }
+
+  /// Checks if downpipe style capacity is fully compliant.
+  bool get isDownpipeCompliant {
+    final flow = flowRatePerDownpipe;
+    if (downpipeStyle == 'Round') return flow <= 12.0;
+    return flow <= 10.0;
+  }
+
+  /// Checks if gutter carrying capacity is fully compliant.
+  bool get isGutterCapacityCompliant {
+    final flow = flowRatePerDownpipe;
+    if (gutterType == 'Eaves Gutter') {
+      if (gutterProfile == 'Quad PVC') return flow <= 1.5;
+      return flow <= 3.2; // Colorbond Slotted
+    }
+    return boxGutterSlope <= 200.0; // Box gutter is failed if 1:500 slope is chosen
+  }
+
+  /// Checks if box gutter slope conforms.
+  bool get isBoxGutterSlopeCompliant {
+    return gutterType != 'Box Gutter' || boxGutterSlope <= 200.0;
+  }
+
+  /// Checks if overflow relief elements are installed.
+  bool get isOverflowReliefCompliant {
+    if (gutterType == 'Eaves Gutter') return slottedOverflow;
+    return rainheadOverflow;
+  }
+
+  /// Checks full compliance status.
+  bool get isFullyCompliant {
+    return isDownpipeCompliant &&
+        isGutterCapacityCompliant &&
+        isBoxGutterSlopeCompliant &&
+        isOverflowReliefCompliant;
+  }
+
+  /// Returns recommended premium upgrade suggestion.
+  String get upgradeRecommendation {
+    if (gutterProfile == 'Quad PVC') {
+      return 'Upgrade to Premium Colorbond Slotted Gutter with overflow weirs (reduces blockage overflow risk).';
+    }
+    return 'Gutter system is premium-optimized with slotted steel channels and heavy duty brackets.';
+  }
+
+  /// Returns cheapest option material ledger cost.
+  double get cheapestEstimatedCost {
+    final runs = roofLength * 2.0;
+    return (runs * 18.0) + (downpipeCount * 45.0); // Standard PVC rates
+  }
+
+  /// Returns premium option material ledger cost.
+  double get premiumEstimatedCost {
+    final runs = roofLength * 2.0;
+    return (runs * 48.0) + (downpipeCount * 125.0) + 250.0; // Colorbond rates + weirs
+  }
+
+  /// Clones stormwater compliance state overrides.
+  StormwaterComplianceState copyWith({
+    double? roofLength,
+    double? roofWidth,
+    double? roofPitch,
+    String? rainfallZone,
+    String? gutterType,
+    String? gutterProfile,
+    String? downpipeStyle,
+    double? boxGutterSlope,
+    bool? slottedOverflow,
+    bool? rainheadOverflow,
+    int? downpipeCount,
+  }) {
+    return StormwaterComplianceState(
+      roofLength: roofLength ?? this.roofLength,
+      roofWidth: roofWidth ?? this.roofWidth,
+      roofPitch: roofPitch ?? this.roofPitch,
+      rainfallZone: rainfallZone ?? this.rainfallZone,
+      gutterType: gutterType ?? this.gutterType,
+      gutterProfile: gutterProfile ?? this.gutterProfile,
+      downpipeStyle: downpipeStyle ?? this.downpipeStyle,
+      boxGutterSlope: boxGutterSlope ?? this.boxGutterSlope,
+      slottedOverflow: slottedOverflow ?? this.slottedOverflow,
+      rainheadOverflow: rainheadOverflow ?? this.rainheadOverflow,
+      downpipeCount: downpipeCount ?? this.downpipeCount,
+    );
+  }
+}
+
+/// Riverpod Notifier for Stormwater Compliance State.
+class StormwaterComplianceNotifier extends Notifier<StormwaterComplianceState> {
+  @override
+  StormwaterComplianceState build() {
+    return StormwaterComplianceState.initial();
+  }
+
+  void updateLength(double len) => state = state.copyWith(roofLength: len);
+  void updateWidth(double w) => state = state.copyWith(roofWidth: w);
+  void updatePitch(double p) => state = state.copyWith(roofPitch: p);
+  void updateZone(String z) => state = state.copyWith(rainfallZone: z);
+  void updateGutterType(String gt) => state = state.copyWith(gutterType: gt);
+  void updateGutterProfile(String gp) => state = state.copyWith(gutterProfile: gp);
+  void updateDownpipeStyle(String ds) => state = state.copyWith(downpipeStyle: ds);
+  void updateSlope(double s) => state = state.copyWith(boxGutterSlope: s);
+  void updateSlotted(bool val) => state = state.copyWith(slottedOverflow: val);
+  void updateRainhead(bool val) => state = state.copyWith(rainheadOverflow: val);
+  void updateDownpipeCount(int count) => state = state.copyWith(downpipeCount: count.clamp(1, 10));
+  void reset() => state = StormwaterComplianceState.initial();
+}
+
+/// Riverpod Provider for Stormwater Sizer.
+final stormwaterComplianceProvider = NotifierProvider<StormwaterComplianceNotifier, StormwaterComplianceState>(StormwaterComplianceNotifier.new);
+
+/// State structure for Gas Fitting Pipe Sizer & Ventilation Auditor (AS/NZS 5601.1).
+class GasComplianceState {
+  final String gasType; // 'Natural Gas', 'LPG'
+  final String pipeMaterial; // 'Copper', 'PEX-AL-PEX'
+  final double totalLoad; // MJ/h
+  final double pipeLength; // meters
+  final String pipeDiameter; // 'DN15', 'DN20', 'DN25', 'DN32', 'DN40'
+  final double roomVolume; // m^3
+  final double ventFreeArea; // mm^2
+  final bool ventsProperlyPositioned;
+  final bool hasSolenoidShutoff;
+  final bool regulatorInstalled;
+
+  const GasComplianceState({
+    required this.gasType,
+    required this.pipeMaterial,
+    required this.totalLoad,
+    required this.pipeLength,
+    required this.pipeDiameter,
+    required this.roomVolume,
+    required this.ventFreeArea,
+    required this.ventsProperlyPositioned,
+    required this.hasSolenoidShutoff,
+    required this.regulatorInstalled,
+  });
+
+  /// Factory for default compliant initial state.
+  factory GasComplianceState.initial() {
+    return const GasComplianceState(
+      gasType: 'Natural Gas',
+      pipeMaterial: 'Copper',
+      totalLoad: 80.0,
+      pipeLength: 15.0,
+      pipeDiameter: 'DN20',
+      roomVolume: 12.0,
+      ventFreeArea: 25000.0,
+      ventsProperlyPositioned: true,
+      hasSolenoidShutoff: false,
+      regulatorInstalled: true,
+    );
+  }
+
+  /// Calculates inner diameter in mm based on material and outer diameter size label.
+  double get innerDiameter {
+    if (pipeMaterial == 'Copper') {
+      switch (pipeDiameter) {
+        case 'DN15': return 13.0;
+        case 'DN25': return 23.5;
+        case 'DN32': return 29.0;
+        case 'DN40': return 38.0;
+        default: return 18.0; // DN20
+      }
+    } else {
+      // PEX-AL-PEX
+      switch (pipeDiameter) {
+        case 'DN15': return 11.5;
+        case 'DN25': return 20.0;
+        case 'DN32': return 26.0;
+        case 'DN40': return 32.0;
+        default: return 16.0; // DN20
+      }
+    }
+  }
+
+  /// Converts MJ/h to volumetric flow rate m^3/h.
+  double get gasFlowRate {
+    final divisor = gasType == 'Natural Gas' ? 38.0 : 95.0;
+    return totalLoad / divisor;
+  }
+
+  /// Estimates pressure drop in kPa across pipeline run using Colebrook/Pole empirical curve.
+  double get calculatedPressureDrop {
+    final flow = gasFlowRate;
+    final d = innerDiameter;
+    final density = gasType == 'Natural Gas' ? 0.6 : 1.5;
+    if (flow == 0.0 || d == 0.0) return 0.0;
+    final drop = (math.pow(flow, 1.8) * pipeLength * density * 8200.0) / math.pow(d, 4.8);
+    return drop.clamp(0.001, 5.0);
+  }
+
+  /// Gets maximum allowed statutory pressure drop in kPa.
+  double get maxAllowedPressureDrop {
+    return gasType == 'Natural Gas' ? 0.075 : 0.25;
+  }
+
+  /// Validates if the pipe pressure drop is within safety parameters.
+  bool get isPressureDropCompliant {
+    return calculatedPressureDrop <= maxAllowedPressureDrop;
+  }
+
+  /// Identifies if the target room counts as a confined space (Clause 6.4).
+  bool get isConfinedSpace {
+    return roomVolume < (0.07 * totalLoad);
+  }
+
+  /// Calculates required free ventilation aperture area in mm^2 (AS/NZS 5601.1 Table 6.3).
+  double get requiredVentilationArea {
+    if (!isConfinedSpace) return 0.0;
+    return totalLoad * 300.0; // 300 mm^2 per MJ/h for direct outside vents
+  }
+
+  /// Validates room ventilation.
+  bool get isVentilationCompliant {
+    if (!isConfinedSpace) return true;
+    return ventFreeArea >= requiredVentilationArea && ventsProperlyPositioned;
+  }
+
+  /// Validates regulator presence.
+  bool get isRegulatorCompliant => regulatorInstalled;
+
+  /// Checks full compliance status.
+  bool get isFullyCompliant {
+    return isPressureDropCompliant && isVentilationCompliant && isRegulatorCompliant;
+  }
+
+  /// Returns recommended premium upgrade suggestion.
+  String get upgradeRecommendation {
+    if (pipeMaterial == 'Copper') {
+      return 'Upgrade to jacketed Multilayer PEX-AL-PEX pipe with automatic solenoid gas leak shutoff safety valves.';
+    }
+    return 'System is high fidelity with flexible safety solenoids and smart piping.';
+  }
+
+  /// Returns cheapest option material ledger cost.
+  double get cheapestEstimatedCost {
+    return (pipeLength * 25.0) + 120.0; // Standard Copper DN20 runs + standard fittings
+  }
+
+  /// Returns premium option material ledger cost.
+  double get premiumEstimatedCost {
+    return (pipeLength * 55.0) + 550.0; // PEX-AL-PEX + Solenoid shutdown package
+  }
+
+  /// Clones gas compliance state overrides.
+  GasComplianceState copyWith({
+    String? gasType,
+    String? pipeMaterial,
+    double? totalLoad,
+    double? pipeLength,
+    String? pipeDiameter,
+    double? roomVolume,
+    double? ventFreeArea,
+    bool? ventsProperlyPositioned,
+    bool? hasSolenoidShutoff,
+    bool? regulatorInstalled,
+  }) {
+    return GasComplianceState(
+      gasType: gasType ?? this.gasType,
+      pipeMaterial: pipeMaterial ?? this.pipeMaterial,
+      totalLoad: totalLoad ?? this.totalLoad,
+      pipeLength: pipeLength ?? this.pipeLength,
+      pipeDiameter: pipeDiameter ?? this.pipeDiameter,
+      roomVolume: roomVolume ?? this.roomVolume,
+      ventFreeArea: ventFreeArea ?? this.ventFreeArea,
+      ventsProperlyPositioned: ventsProperlyPositioned ?? this.ventsProperlyPositioned,
+      hasSolenoidShutoff: hasSolenoidShutoff ?? this.hasSolenoidShutoff,
+      regulatorInstalled: regulatorInstalled ?? this.regulatorInstalled,
+    );
+  }
+}
+
+/// Riverpod Notifier for Gas Compliance State.
+class GasComplianceNotifier extends Notifier<GasComplianceState> {
+  @override
+  GasComplianceState build() {
+    return GasComplianceState.initial();
+  }
+
+  void updateGasType(String type) => state = state.copyWith(gasType: type);
+  void updateMaterial(String mat) => state = state.copyWith(pipeMaterial: mat);
+  void updateLoad(double load) => state = state.copyWith(totalLoad: load);
+  void updateLength(double len) => state = state.copyWith(pipeLength: len);
+  void updateDiameter(String dia) => state = state.copyWith(pipeDiameter: dia);
+  void updateVolume(double vol) => state = state.copyWith(roomVolume: vol);
+  void updateVentArea(double area) => state = state.copyWith(ventFreeArea: area);
+  void updateVentPositioned(bool val) => state = state.copyWith(ventsProperlyPositioned: val);
+  void updateSolenoid(bool val) => state = state.copyWith(hasSolenoidShutoff: val);
+  void updateRegulator(bool val) => state = state.copyWith(regulatorInstalled: val);
+  void reset() => state = GasComplianceState.initial();
+}
+
+/// Riverpod Provider for Gas Sizer.
+final gasComplianceProvider = NotifierProvider<GasComplianceNotifier, GasComplianceState>(GasComplianceNotifier.new);
+
+
 
 
 
