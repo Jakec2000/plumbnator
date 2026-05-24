@@ -24,10 +24,10 @@ class AnalysisResultCard extends StatelessWidget {
       children: [
         // Header Status Card
         GlassCard(
-          borderColor: themeColor.withOpacity(0.3),
+          borderColor: themeColor.withValues(alpha: 0.3),
           backgroundGradient: [
-            themeColor.withOpacity(0.08),
-            Colors.white.withOpacity(0.01),
+            themeColor.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.01),
           ],
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +156,7 @@ class AnalysisResultCard extends StatelessWidget {
         if (result.hotspots.isNotEmpty) ...[
           const SizedBox(height: 20),
           GlassCard(
-            borderColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withValues(alpha: 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -186,14 +186,14 @@ class AnalysisResultCard extends StatelessWidget {
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white.withOpacity(0.06)),
-                          color: Colors.white.withOpacity(0.01),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                          color: Colors.white.withValues(alpha: 0.01),
                         ),
                         child: Row(
                           children: [
                             CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF00E6FF).withOpacity(0.2),
+                              backgroundColor: const Color(0xFF00E6FF).withValues(alpha: 0.2),
                               child: Text(
                                 '${index + 1}',
                                 style: GoogleFonts.outfit(
@@ -247,7 +247,7 @@ class AnalysisResultCard extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
       ),
       child: Icon(
         failed ? Icons.warning_amber_rounded : Icons.verified_user_outlined,

@@ -162,10 +162,10 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
     final reasons = eval['reasons'] as List<String>;
 
     return GlassCard(
-      borderColor: themeColor.withOpacity(0.3),
+      borderColor: themeColor.withValues(alpha: 0.3),
       backgroundGradient: [
-        themeColor.withOpacity(0.08),
-        Colors.white.withOpacity(0.01),
+        themeColor.withValues(alpha: 0.08),
+        Colors.white.withValues(alpha: 0.01),
       ],
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +173,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: themeColor.withOpacity(0.12),
+              color: themeColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -202,7 +202,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.15),
+                        color: themeColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -254,7 +254,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
   /// Metadata specifications for the valve.
   Widget _buildDeviceConfigPanel() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -274,7 +274,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
+                        color: Colors.white.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -309,7 +309,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
+                        color: Colors.white.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -374,7 +374,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
           style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white.withOpacity(0.04),
+            fillColor: Colors.white.withValues(alpha: 0.04),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           ),
@@ -388,7 +388,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
     final isRpz = _selectedDeviceType == 'RPZD';
 
     return GlassCard(
-      borderColor: const Color(0xFF00E6FF).withOpacity(0.1),
+      borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -478,7 +478,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
               activeTrackColor: color,
               inactiveTrackColor: Colors.white12,
               thumbColor: color,
-              overlayColor: color.withOpacity(0.15),
+              overlayColor: color.withValues(alpha: 0.15),
               trackHeight: 3,
             ),
             child: Slider(
@@ -496,7 +496,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
   /// Plumber credentials signature log.
   Widget _buildTesterPanel() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -541,7 +541,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
   /// Registered test log ledger registry.
   Widget _buildLedgerRegister(List<BackflowDevice> devices) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -556,7 +556,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
-                  color: const Color(0xFF00E6FF).withOpacity(0.1),
+                  color: const Color(0xFF00E6FF).withValues(alpha: 0.1),
                 ),
                 child: Text(
                   '${devices.length} Registered',
@@ -592,7 +592,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white12),
-                    color: Colors.white.withOpacity(0.01),
+                    color: Colors.white.withValues(alpha: 0.01),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -620,7 +620,7 @@ class _BackflowCalculatorViewState extends ConsumerState<BackflowCalculatorView>
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(6),
-                              color: badgeColor.withOpacity(0.12),
+                              color: badgeColor.withValues(alpha: 0.12),
                             ),
                             child: Text(
                               isPass ? 'PASS' : 'FAIL',

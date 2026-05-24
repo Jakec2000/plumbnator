@@ -93,8 +93,8 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: limitColor.withOpacity(0.08),
-        border: Border.all(color: limitColor.withOpacity(0.2)),
+        color: limitColor.withValues(alpha: 0.08),
+        border: Border.all(color: limitColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -129,8 +129,8 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
-                  color: const Color(0xFFFFD700).withOpacity(0.15),
-                  border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                  border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   children: [
@@ -157,7 +157,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
   /// Control frame supporting sandbox mock capture & real library triggers.
   Widget _buildControlPanel(AiAnalysisState aiState) {
     return GlassCard(
-      borderColor: const Color(0xFF00E6FF).withOpacity(0.1),
+      borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.1),
       child: Column(
         children: [
           _buildUploaderArea(aiState),
@@ -178,7 +178,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withValues(alpha: 0.02),
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -214,7 +214,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
               child: Center(
                 child: Icon(
                   Icons.plumbing_outlined,
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                   size: 72,
                 ),
               ),
@@ -253,7 +253,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                   }
                 : null,
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.white.withOpacity(0.12)),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
@@ -336,7 +336,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withValues(alpha: 0.03),
           border: Border.all(color: Colors.white12),
         ),
         child: Row(
@@ -386,7 +386,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                     height: 120,
                     width: 120,
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.3)),
+                      border: Border.all(color: const Color(0xFF00FF87).withValues(alpha: 0.3)),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -466,10 +466,10 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
       key: const ValueKey('error_widget'),
       padding: const EdgeInsets.only(top: 24.0),
       child: GlassCard(
-        borderColor: const Color(0xFFFF416C).withOpacity(0.3),
+        borderColor: const Color(0xFFFF416C).withValues(alpha: 0.3),
         backgroundGradient: [
-          const Color(0xFFFF416C).withOpacity(0.08),
-          Colors.white.withOpacity(0.01),
+          const Color(0xFFFF416C).withValues(alpha: 0.08),
+          Colors.white.withValues(alpha: 0.01),
         ],
         child: Row(
           children: [
@@ -508,11 +508,11 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) {
+        bool isLoading = false;
+        bool isSuccess = false;
+
         return StatefulBuilder(
           builder: (context, setModalState) {
-            bool isLoading = false;
-            bool isSuccess = false;
-
             return Container(
               padding: const EdgeInsets.all(28),
               decoration: const BoxDecoration(
@@ -534,7 +534,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFD700).withOpacity(0.12),
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.workspace_premium_outlined, color: Color(0xFFFFD700), size: 36),
@@ -561,11 +561,11 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                        border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.3)),
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFFFFD700).withOpacity(0.08),
-                            Colors.white.withOpacity(0.01),
+                            const Color(0xFFFFD700).withValues(alpha: 0.08),
+                            Colors.white.withValues(alpha: 0.01),
                           ],
                         ),
                       ),
@@ -618,7 +618,7 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                         width: double.infinity,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00FF87).withOpacity(0.12),
+                          color: const Color(0xFF00FF87).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -649,7 +649,9 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
                                     isSuccess = true;
                                   });
                                   await Future.delayed(const Duration(milliseconds: 1000));
+                                  if (!ctx.mounted) return;
                                   Navigator.pop(ctx);
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       backgroundColor: const Color(0xFFFFD700),

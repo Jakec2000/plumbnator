@@ -36,7 +36,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: GlassCard(
-            borderColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withValues(alpha: 0.05),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -149,7 +149,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
   /// Dropdown to lock sketch to active job card.
   Widget _buildJobSelector(List<PlumbingJob> jobs, PlumbingJob activeJob) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Row(
         children: [
           const Icon(Icons.assignment_outlined, color: Color(0xFF00E6FF), size: 20),
@@ -163,7 +163,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: DropdownButtonHideUnderline(
@@ -197,7 +197,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
   /// Toolbar selecting tools: draw, place symbols, undo, clear.
   Widget _buildCanvasControlToolbar() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Row(
         children: [
           // Draw Tool button
@@ -250,8 +250,8 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: isActive ? const Color(0xFF00E6FF).withOpacity(0.12) : Colors.transparent,
-          border: Border.all(color: isActive ? const Color(0xFF00E6FF).withOpacity(0.3) : Colors.white12),
+          color: isActive ? const Color(0xFF00E6FF).withValues(alpha: 0.12) : Colors.transparent,
+          border: Border.all(color: isActive ? const Color(0xFF00E6FF).withValues(alpha: 0.3) : Colors.white12),
         ),
         child: Row(
           children: [
@@ -329,8 +329,8 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.02),
-        border: Border.all(color: Colors.white.withOpacity(0.04)),
+        color: Colors.white.withValues(alpha: 0.02),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
       ),
       child: Row(
         children: [
@@ -352,7 +352,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
   /// Symbol Inventory Selection.
   Widget _buildSymbolInventoryPanel() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,7 +390,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: isSelected ? const Color(0xFF00E6FF) : Colors.white12),
-          color: isSelected ? const Color(0xFF00E6FF).withOpacity(0.06) : Colors.transparent,
+          color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.06) : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -443,7 +443,7 @@ class _DrainageSketcherViewState extends ConsumerState<DrainageSketcherView> {
   /// Action buttons (Save, Export PDF).
   Widget _buildActionPanel(PlumbingJob activeJob) {
     return GlassCard(
-      borderColor: const Color(0xFF00E6FF).withOpacity(0.2),
+      borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.2),
       child: Column(
         children: [
           // Save Sketch
@@ -617,7 +617,7 @@ class DrainagePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // 1. Draw a technical blue-grid pattern in background for blueprint feel!
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.03)
+      ..color = Colors.white.withValues(alpha: 0.03)
       ..strokeWidth = 1.0;
 
     const double gridSize = 30.0;
@@ -630,7 +630,7 @@ class DrainagePainter extends CustomPainter {
 
     // 2. Draw outer bounding border
     final framePaint = Paint()
-      ..color = const Color(0xFF00E6FF).withOpacity(0.15)
+      ..color = const Color(0xFF00E6FF).withValues(alpha: 0.15)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), framePaint);

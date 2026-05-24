@@ -38,7 +38,7 @@ class StormwaterSchematicPainter extends CustomPainter {
     canvas.drawRect(rect, paint);
 
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.02)
+      ..color = Colors.white.withValues(alpha: 0.02)
       ..strokeWidth = 1.0;
 
     const spacing = 20.0;
@@ -67,7 +67,7 @@ class StormwaterSchematicPainter extends CustomPainter {
 
     // Draw roof sheet ribs / lines
     final ribPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..strokeWidth = 2.0;
 
     const ribs = 6;
@@ -84,7 +84,7 @@ class StormwaterSchematicPainter extends CustomPainter {
 
     // Draw active rain vectors
     final rainPaint = Paint()
-      ..color = const Color(0xFF00E6FF).withOpacity(0.4)
+      ..color = const Color(0xFF00E6FF).withValues(alpha: 0.4)
       ..strokeWidth = 1.5;
     for (int i = 0; i < 8; i++) {
       final rx = size.width * (0.15 + i * 0.08);
@@ -186,7 +186,7 @@ class StormwaterSchematicPainter extends CustomPainter {
   /// Draws slot or rainhead overflow relief vectors if active.
   void _drawOverflowIndicators(Canvas canvas, Size size) {
     final overflowPaint = Paint()
-      ..color = const Color(0xFF00E6FF).withOpacity(0.8)
+      ..color = const Color(0xFF00E6FF).withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
     if (state.gutterType == 'Eaves Gutter' && state.slottedOverflow) {

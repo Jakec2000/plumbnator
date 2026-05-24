@@ -102,7 +102,7 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
   /// List of available SWMS templates.
   Widget _buildProfilesCard(List<SwmsProfile> profiles) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -118,9 +118,9 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
               ElevatedButton.icon(
                 onPressed: _showCreateCustomSwmsDialog,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E6FF).withOpacity(0.12),
+                  backgroundColor: const Color(0xFF00E6FF).withValues(alpha: 0.12),
                   foregroundColor: const Color(0xFF00E6FF),
-                  side: BorderSide(color: const Color(0xFF00E6FF).withOpacity(0.4), width: 1.5),
+                  side: BorderSide(color: const Color(0xFF00E6FF).withValues(alpha: 0.4), width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
@@ -149,7 +149,7 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
                       color: isSelected ? const Color(0xFF00E6FF) : Colors.white12,
                       width: isSelected ? 2 : 1,
                     ),
-                    color: Colors.white.withOpacity(isSelected ? 0.05 : 0.01),
+                    color: Colors.white.withValues(alpha: isSelected ? 0.05 : 0.01),
                   ),
                   child: Row(
                     children: [
@@ -212,7 +212,7 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
     final themeColor = profile.isSigned ? const Color(0xFF00FF87) : const Color(0xFF00E6FF);
 
     return GlassCard(
-      borderColor: themeColor.withOpacity(0.2),
+      borderColor: themeColor.withValues(alpha: 0.2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -292,7 +292,7 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
           style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white.withOpacity(0.04),
+            fillColor: Colors.white.withValues(alpha: 0.04),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
@@ -326,8 +326,8 @@ class _WhsSwmsViewState extends ConsumerState<WhsSwmsView> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: const Color(0xFF00FF87).withOpacity(0.1),
-        border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.2)),
+        color: const Color(0xFF00FF87).withValues(alpha: 0.1),
+        border: Border.all(color: const Color(0xFF00FF87).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -492,7 +492,7 @@ class _CreateSwmsDialogState extends ConsumerState<CreateSwmsDialog> {
         width: 600,
         constraints: const BoxConstraints(maxHeight: 750),
         child: GlassCard(
-          borderColor: const Color(0xFF00E6FF).withOpacity(0.15),
+          borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.15),
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -587,7 +587,7 @@ class _CreateSwmsDialogState extends ConsumerState<CreateSwmsDialog> {
             hintText: 'e.g. Sewer line high-pressure jet cleaning (QLD)',
             hintStyle: GoogleFonts.inter(color: Colors.white24, fontSize: 13),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.04),
+            fillColor: Colors.white.withValues(alpha: 0.04),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Colors.white10),
@@ -660,7 +660,7 @@ class _CreateSwmsDialogState extends ConsumerState<CreateSwmsDialog> {
                       hintText: 'Enter $label details...',
                       hintStyle: GoogleFonts.inter(color: Colors.white24, fontSize: 12),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.02),
+                      fillColor: Colors.white.withValues(alpha: 0.02),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: const BorderSide(color: Colors.white10),

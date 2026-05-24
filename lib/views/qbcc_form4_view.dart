@@ -104,7 +104,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
   /// Selector widget for unlodged jobs.
   Widget _buildForm4Selector(dynamic unlodgedJobs) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -138,7 +138,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
                         color: isSelected ? const Color(0xFF00E6FF) : Colors.white12,
                         width: isSelected ? 2 : 1,
                       ),
-                      color: Colors.white.withOpacity(isSelected ? 0.05 : 0.01),
+                      color: Colors.white.withValues(alpha: isSelected ? 0.05 : 0.01),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,7 +160,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6),
-                            color: alertColor.withOpacity(0.15),
+                            color: alertColor.withValues(alpha: 0.15),
                           ),
                           child: Text(
                             job.isOverdue ? 'OVERDUE' : '${job.daysUntilOverdue}d Left',
@@ -181,7 +181,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
   /// Interactive pricing panel for standard vs priority options.
   Widget _buildPricingPanel() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -222,7 +222,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: isSelected ? const Color(0xFF00E6FF) : Colors.white12),
-          color: isSelected ? const Color(0xFF00E6FF).withOpacity(0.05) : Colors.transparent,
+          color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.05) : Colors.transparent,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +258,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
   /// Final lodgement submission card.
   Widget _buildLodgementDetails() {
     return GlassCard(
-      borderColor: const Color(0xFF00E6FF).withOpacity(0.2),
+      borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -274,7 +274,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
             style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.white.withOpacity(0.04),
+              fillColor: Colors.white.withValues(alpha: 0.04),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),

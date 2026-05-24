@@ -38,7 +38,7 @@ class GasSchematicPainter extends CustomPainter {
     canvas.drawRect(rect, paint);
 
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.015)
+      ..color = Colors.white.withValues(alpha: 0.015)
       ..strokeWidth = 1.0;
 
     const spacing = 20.0;
@@ -190,7 +190,7 @@ class GasSchematicPainter extends CustomPainter {
 
     // Blue gas flame indicators
     final flamePaint = Paint()
-      ..color = const Color(0xFF00E6FF).withOpacity(0.95)
+      ..color = const Color(0xFF00E6FF).withValues(alpha: 0.95)
       ..style = PaintingStyle.fill;
 
     final flamePath = Path()

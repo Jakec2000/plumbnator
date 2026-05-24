@@ -112,10 +112,10 @@ class DashboardView extends ConsumerWidget {
     required Color color,
   }) {
     return GlassCard(
-      borderColor: color.withOpacity(0.2),
+      borderColor: color.withValues(alpha: 0.2),
       backgroundGradient: [
-        color.withOpacity(0.06),
-        Colors.white.withOpacity(0.01),
+        color.withValues(alpha: 0.06),
+        Colors.white.withValues(alpha: 0.01),
       ],
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
@@ -189,10 +189,10 @@ class DashboardView extends ConsumerWidget {
               GestureDetector(
                 onTap: () => ref.read(navProvider.notifier).setIndex(1),
                 child: GlassCard(
-                  borderColor: const Color(0xFF00E6FF).withOpacity(0.4),
+                  borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.4),
                   backgroundGradient: [
-                    const Color(0xFF00E6FF).withOpacity(0.09),
-                    const Color(0xFF00FF87).withOpacity(0.01),
+                    const Color(0xFF00E6FF).withValues(alpha: 0.09),
+                    const Color(0xFF00FF87).withValues(alpha: 0.01),
                   ],
                   padding: const EdgeInsets.all(20.0),
                   child: Row(
@@ -201,8 +201,8 @@ class DashboardView extends ConsumerWidget {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF00E6FF).withOpacity(0.12),
-                          border: Border.all(color: const Color(0xFF00E6FF).withOpacity(0.3)),
+                          color: const Color(0xFF00E6FF).withValues(alpha: 0.12),
+                          border: Border.all(color: const Color(0xFF00E6FF).withValues(alpha: 0.3)),
                         ),
                         child: const Icon(
                           Icons.psychology_outlined,
@@ -303,7 +303,7 @@ class DashboardView extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-        borderColor: statusColor.withOpacity(0.15),
+        borderColor: statusColor.withValues(alpha: 0.15),
         child: Row(
           children: [
             Container(
@@ -311,8 +311,8 @@ class DashboardView extends ConsumerWidget {
               width: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: statusColor.withOpacity(0.1),
-                border: Border.all(color: statusColor.withOpacity(0.3), width: 1.5),
+                color: statusColor.withValues(alpha: 0.1),
+                border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1.5),
               ),
               child: Icon(
                 job.form4Submitted
@@ -357,7 +357,7 @@ class DashboardView extends ConsumerWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: (isCompliant ? const Color(0xFF00FF87) : const Color(0xFFFF416C))
-                        .withOpacity(0.1),
+                        .withValues(alpha: 0.1),
                   ),
                   child: Text(
                     '${(job.complianceScore * 100).toStringAsFixed(0)}% Match',
@@ -388,7 +388,7 @@ class DashboardView extends ConsumerWidget {
   /// Builds a card summarizing vital Queensland regulations.
   Widget _buildRegulatorySummary() {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

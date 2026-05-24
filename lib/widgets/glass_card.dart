@@ -25,11 +25,11 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderCol = borderColor ?? Colors.white.withOpacity(0.08);
+    final borderCol = borderColor ?? Colors.white.withValues(alpha: 0.08);
     final gradientColors = backgroundGradient ??
         [
-          Colors.white.withOpacity(0.04),
-          Colors.white.withOpacity(0.01),
+          Colors.white.withValues(alpha: 0.04),
+          Colors.white.withValues(alpha: 0.01),
         ];
 
     return ClipRRect(

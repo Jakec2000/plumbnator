@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/compliance_result.dart';
 import '../models/standards_registry.dart';
 import 'rate_limiter_service.dart';
+import 'standards_search_service.dart';
 
 class AiAnalysisService {
   final RateLimiterService _rateLimiter = RateLimiterService();
@@ -41,6 +42,51 @@ class AiAnalysisService {
 
     try {
       final base64Str = base64Image ?? base64Encode(imageBytes);
+
+      // Load the standards JSON if not already loaded
+      await StandardsSearchService().loadStandards();
+
+      // --- Pass 1: Feature Detection ---
+      final featureDetectionResponse = await http.post(
+        Uri.parse(_apiEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_apiKey',
+        },
+        body: jsonEncode({
+          'model': 'gpt-4o',
+          'messages': [
+            {
+              'role': 'user',
+              'content': [
+                {
+                  'type': 'text',
+                  'text': 'Identify all plumbing fixtures, components, or systems visible in this image. Return ONLY a comma-separated list of short keywords. Examples: Water Pipe, Drainage, Hot Water System, Valve.',
+                },
+                {
+                  'type': 'image_url',
+                  'image_url': {
+                    'url': 'data:image/png;base64,$base64Str',
+                  },
+                }
+              ]
+            }
+          ],
+          'max_tokens': 50,
+        }),
+      );
+
+      List<String> keywords = [];
+      if (featureDetectionResponse.statusCode == 200) {
+        final fData = jsonDecode(featureDetectionResponse.body);
+        final keywordsStr = fData['choices'][0]['message']['content'] as String;
+        keywords = keywordsStr.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      }
+
+      // Query dynamic standards using detected keywords
+      final dynamicStandardsText = StandardsSearchService().searchStandards(keywords);
+
+      // --- Pass 2: Compliance Audit ---
       final response = await http.post(
         Uri.parse(_apiEndpoint),
         headers: {
@@ -56,7 +102,7 @@ class AiAnalysisService {
               'content': [
                 {
                   'type': 'text',
-                  'text': _buildSystemPrompt(),
+                  'text': _buildSystemPrompt(dynamicStandardsText),
                 },
                 {
                   'type': 'image_url',
@@ -111,8 +157,7 @@ class AiAnalysisService {
   }
 
   /// Builds a comprehensive system prompt enforcing AS/NZS 3500 series compliance.
-  String _buildSystemPrompt() {
-    final standardsText = PlumbingStandardsRegistry.buildRegistryText();
+  String _buildSystemPrompt(String standardsText) {
     return '''
 You are an expert QLD regulatory compliance plumber auditing installation photos.
 Reference the following statutory Australian/QLD plumbing standards to perform your audit:

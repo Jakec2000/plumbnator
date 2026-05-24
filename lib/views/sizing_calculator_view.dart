@@ -70,7 +70,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
       decoration: BoxDecoration(
         color: const Color(0xFF0A0F1D),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -123,10 +123,10 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? primaryColor.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? primaryColor.withOpacity(0.3) : Colors.transparent,
+            color: isSelected ? primaryColor.withValues(alpha: 0.3) : Colors.transparent,
           ),
         ),
         child: Text(
@@ -204,7 +204,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
     final fixtures = isDrainage ? state.fixtureCounts : state.waterFixtureCounts;
 
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -284,7 +284,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
   /// Standard trench gradient slider controls for drainage mode.
   Widget _buildTrenchControls(SizingState state, SizingNotifier notifier) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -368,10 +368,10 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
     final alertColor = isGradeCompliant ? const Color(0xFF00FF87) : const Color(0xFFFF416C);
 
     return GlassCard(
-      borderColor: alertColor.withOpacity(0.2),
+      borderColor: alertColor.withValues(alpha: 0.2),
       backgroundGradient: [
-        alertColor.withOpacity(0.05),
-        Colors.white.withOpacity(0.01),
+        alertColor.withValues(alpha: 0.05),
+        Colors.white.withValues(alpha: 0.01),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,8 +390,8 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: alertColor.withOpacity(0.1),
-              border: Border.all(color: alertColor.withOpacity(0.2)),
+              color: alertColor.withValues(alpha: 0.1),
+              border: Border.all(color: alertColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -422,10 +422,10 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
     final alertColor = totalLu > 0 ? const Color(0xFF00E6FF) : Colors.white24;
 
     return GlassCard(
-      borderColor: alertColor.withOpacity(0.2),
+      borderColor: alertColor.withValues(alpha: 0.2),
       backgroundGradient: [
-        alertColor.withOpacity(0.05),
-        Colors.white.withOpacity(0.01),
+        alertColor.withValues(alpha: 0.05),
+        Colors.white.withValues(alpha: 0.01),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,8 +453,8 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: const Color(0xFFFFB000).withOpacity(0.1),
-          border: Border.all(color: const Color(0xFFFFB000).withOpacity(0.2)),
+          color: const Color(0xFFFFB000).withValues(alpha: 0.1),
+          border: Border.all(color: const Color(0xFFFFB000).withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -474,8 +474,8 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: const Color(0xFF00FF87).withOpacity(0.1),
-          border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.2)),
+          color: const Color(0xFF00FF87).withValues(alpha: 0.1),
+          border: Border.all(color: const Color(0xFF00FF87).withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -519,7 +519,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
   /// Builds the controls for Laser Grade and Staff Level calculations.
   Widget _buildLaserGradeControls(SizingState state, SizingNotifier notifier) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.05),
+      borderColor: Colors.white.withValues(alpha: 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -604,7 +604,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -756,10 +756,10 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
     return Column(
       children: [
         GlassCard(
-          borderColor: const Color(0xFF00E6FF).withOpacity(0.2),
+          borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.2),
           backgroundGradient: [
-            const Color(0xFF00E6FF).withOpacity(0.05),
-            Colors.white.withOpacity(0.01),
+            const Color(0xFF00E6FF).withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0.01),
           ],
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -803,8 +803,8 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: alertColor.withOpacity(0.1),
-        border: Border.all(color: alertColor.withOpacity(0.2)),
+        color: alertColor.withValues(alpha: 0.1),
+        border: Border.all(color: alertColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -865,7 +865,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
   /// Renders a beautiful visual blueprint diagram of the laser reference system.
   Widget _buildBlueprintCard(SizingState state, double coverMm) {
     return GlassCard(
-      borderColor: Colors.white.withOpacity(0.04),
+      borderColor: Colors.white.withValues(alpha: 0.04),
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -886,7 +886,7 @@ class _SizingCalculatorViewState extends ConsumerState<SizingCalculatorView> {
             decoration: BoxDecoration(
               color: const Color(0xFF060913),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: CustomPaint(
               painter: BlueprintPainter(
@@ -957,12 +957,12 @@ class BlueprintPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paintLaser = Paint()
-      ..color = Colors.redAccent.withOpacity(0.8)
+      ..color = Colors.redAccent.withValues(alpha: 0.8)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
     final paintTrench = Paint()
-      ..color = const Color(0xFFFFB000).withOpacity(0.7)
+      ..color = const Color(0xFFFFB000).withValues(alpha: 0.7)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 

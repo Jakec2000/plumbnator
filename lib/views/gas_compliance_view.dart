@@ -88,9 +88,9 @@ class GasComplianceView extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withOpacity(0.6),
+        color: const Color(0xFF0F172A).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +196,7 @@ class GasComplianceView extends ConsumerWidget {
           max: max,
           divisions: divisions,
           activeColor: const Color(0xFF00E6FF),
-          inactiveColor: Colors.white.withOpacity(0.08),
+          inactiveColor: Colors.white.withValues(alpha: 0.08),
           onChanged: onChanged,
         ),
       ],
@@ -216,7 +216,7 @@ class GasComplianceView extends ConsumerWidget {
             onSelected: (val) {
               if (val) notifier.updateGasType(type);
             },
-            selectedColor: const Color(0xFF00E6FF).withOpacity(0.15),
+            selectedColor: const Color(0xFF00E6FF).withValues(alpha: 0.15),
             backgroundColor: Colors.transparent,
             side: BorderSide(
               color: isSelected ? const Color(0xFF00E6FF) : Colors.white24,
@@ -240,7 +240,7 @@ class GasComplianceView extends ConsumerWidget {
             onSelected: (val) {
               if (val) notifier.updateMaterial(mat);
             },
-            selectedColor: const Color(0xFF00FF87).withOpacity(0.15),
+            selectedColor: const Color(0xFF00FF87).withValues(alpha: 0.15),
             backgroundColor: Colors.transparent,
             side: BorderSide(
               color: isSelected ? const Color(0xFF00FF87) : Colors.white24,
@@ -304,7 +304,7 @@ class GasComplianceView extends ConsumerWidget {
           height: 280,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -342,9 +342,9 @@ class GasComplianceView extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: warningColor.withOpacity(0.1),
+        color: warningColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: warningColor.withOpacity(0.3), width: 1.2),
+        border: Border.all(color: warningColor.withValues(alpha: 0.3), width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +383,7 @@ class GasComplianceView extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0A0F1D),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,9 +429,9 @@ class GasComplianceView extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withOpacity(0.6),
+        color: const Color(0xFF0F172A).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,7 +495,7 @@ class GasComplianceView extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.12),
+              color: statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -520,12 +520,12 @@ class GasComplianceView extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF0F172A),
-            isPremium ? const Color(0xFF00FF87).withOpacity(0.05) : const Color(0xFF0F172A),
+            isPremium ? const Color(0xFF00FF87).withValues(alpha: 0.05) : const Color(0xFF0F172A),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isPremium ? const Color(0xFF00FF87).withOpacity(0.2) : Colors.white.withOpacity(0.05),
+          color: isPremium ? const Color(0xFF00FF87).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
           width: isPremium ? 1.5 : 1.0,
         ),
       ),
@@ -542,7 +542,7 @@ class GasComplianceView extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isPremium ? const Color(0xFF00FF87).withOpacity(0.15) : Colors.white10,
+                  color: isPremium ? const Color(0xFF00FF87).withValues(alpha: 0.15) : Colors.white10,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

@@ -132,7 +132,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1.0),
                 child: Container(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   height: 1.0,
                 ),
               ),
@@ -145,7 +145,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
                 decoration: BoxDecoration(
                   border: Border(
                     right: BorderSide(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       width: 1.0,
                     ),
                   ),
@@ -242,10 +242,10 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
     return Container(
       width: 250,
       decoration: BoxDecoration(
-        color: const Color(0xFF0A0F1D).withOpacity(0.8),
+        color: const Color(0xFF0A0F1D).withValues(alpha: 0.8),
         border: Border(
           right: BorderSide(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             width: 1.0,
           ),
         ),
@@ -321,7 +321,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00E6FF).withOpacity(0.08) : Colors.transparent,
+            color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -360,7 +360,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00E6FF).withOpacity(0.08) : Colors.transparent,
+            color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -388,7 +388,7 @@ class _NavigationShellState extends ConsumerState<NavigationShell> {
       selectedIndex: currentIndex >= 10 ? 0 : currentIndex,
       onDestinationSelected: (idx) => ref.read(navProvider.notifier).setIndex(idx),
       backgroundColor: const Color(0xFF0A0F1D),
-      indicatorColor: const Color(0xFF00E6FF).withOpacity(0.15),
+      indicatorColor: const Color(0xFF00E6FF).withValues(alpha: 0.15),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
         NavigationDestination(

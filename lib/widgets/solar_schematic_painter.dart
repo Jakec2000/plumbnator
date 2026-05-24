@@ -32,7 +32,7 @@ class SolarSchematicPainter extends CustomPainter {
   /// Renders a sleek tech grid backing to fit Plumbnator's premium design.
   void _drawGridBackground(Canvas canvas, Rect rect) {
     final gridPaint = Paint()
-      ..color = Colors.cyan.withOpacity(0.04)
+      ..color = Colors.cyan.withValues(alpha: 0.04)
       ..strokeWidth = 1.0;
     
     const step = 20.0;
@@ -55,13 +55,13 @@ class SolarSchematicPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          state.isLegionellaCompliant ? Colors.orange.withOpacity(0.85) : Colors.red.withOpacity(0.85),
-          Colors.blue.withOpacity(0.4),
+          state.isLegionellaCompliant ? Colors.orange.withValues(alpha: 0.85) : Colors.red.withValues(alpha: 0.85),
+          Colors.blue.withValues(alpha: 0.4),
         ],
       ).createShader(rect);
     
     final strokePaint = Paint()
-      ..color = state.isLegionellaCompliant ? Colors.cyan.withOpacity(0.7) : Colors.red.withOpacity(0.7)
+      ..color = state.isLegionellaCompliant ? Colors.cyan.withValues(alpha: 0.7) : Colors.red.withValues(alpha: 0.7)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 
@@ -77,7 +77,7 @@ class SolarSchematicPainter extends CustomPainter {
           color: Colors.white,
           fontSize: 10.0,
           fontWeight: FontWeight.bold,
-          shadows: [Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 4.0)],
+          shadows: [Shadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 4.0)],
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -98,19 +98,19 @@ class SolarSchematicPainter extends CustomPainter {
       ..strokeWidth = 2.5;
 
     if (state.techType == 'Heat Pump') {
-      borderPaint.color = Colors.teal.withOpacity(0.85);
-      canvas.drawRRect(RRect.fromRectAndRadius(srcRect, const Radius.circular(12.0)), Paint()..color = Colors.teal.withOpacity(0.12));
+      borderPaint.color = Colors.teal.withValues(alpha: 0.85);
+      canvas.drawRRect(RRect.fromRectAndRadius(srcRect, const Radius.circular(12.0)), Paint()..color = Colors.teal.withValues(alpha: 0.12));
       canvas.drawRRect(RRect.fromRectAndRadius(srcRect, const Radius.circular(12.0)), borderPaint);
       
       // Draw a vector compressor fan circle
       final fanCenter = Offset(srcRect.center.dx, srcRect.center.dy - 10);
-      canvas.drawCircle(fanCenter, 35.0, Paint()..color = Colors.black.withOpacity(0.3));
+      canvas.drawCircle(fanCenter, 35.0, Paint()..color = Colors.black.withValues(alpha: 0.3));
       canvas.drawCircle(fanCenter, 35.0, borderPaint);
       canvas.drawCircle(fanCenter, 5.0, borderPaint..style = PaintingStyle.fill);
       
       // Fan blades
       final bladePaint = Paint()
-        ..color = Colors.teal.withOpacity(0.8)
+        ..color = Colors.teal.withValues(alpha: 0.8)
         ..strokeWidth = 4.0;
       for (double a = 0; a < 2 * pi; a += pi / 3) {
         canvas.drawLine(fanCenter, Offset(fanCenter.dx + 30 * cos(a), fanCenter.dy + 30 * sin(a)), bladePaint);
@@ -119,7 +119,7 @@ class SolarSchematicPainter extends CustomPainter {
       _drawText(canvas, Offset(srcRect.left + 10, srcRect.bottom - 22), 'HP COMPRESSOR\nCOP: ${state.estimatedCop.toStringAsFixed(1)}x', Colors.tealAccent);
     } else {
       // Solar collectors (Flat plate / tubes) angled at the collectorTilt setting
-      borderPaint.color = Colors.orangeAccent.withOpacity(0.85);
+      borderPaint.color = Colors.orangeAccent.withValues(alpha: 0.85);
       canvas.save();
       
       final pivot = Offset(srcRect.left, srcRect.bottom);
@@ -128,11 +128,11 @@ class SolarSchematicPainter extends CustomPainter {
       canvas.rotate(-state.collectorTilt * pi / 180.0 * 0.5);
       
       final collectorRect = Rect.fromLTWH(0, -srcRect.height, srcRect.width, srcRect.height);
-      canvas.drawRect(collectorRect, Paint()..color = Colors.blueGrey.withOpacity(0.35));
+      canvas.drawRect(collectorRect, Paint()..color = Colors.blueGrey.withValues(alpha: 0.35));
       canvas.drawRect(collectorRect, borderPaint);
       
       // Grid lines inside solar collector
-      final linePaint = Paint()..color = Colors.cyan.withOpacity(0.4)..strokeWidth = 1.5;
+      final linePaint = Paint()..color = Colors.cyan.withValues(alpha: 0.4)..strokeWidth = 1.5;
       for (double offset = 20.0; offset < srcRect.width; offset += 20.0) {
         canvas.drawLine(Offset(offset, -srcRect.height), Offset(offset, 0), linePaint);
       }
@@ -206,8 +206,8 @@ class SolarSchematicPainter extends CustomPainter {
     final coldMainsY = size.height * 0.88;
     
     // Paint tokens for styling
-    final coldPipePaint = Paint()..color = Colors.blue.withOpacity(0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
-    final hotPipePaint = Paint()..color = Colors.orange.withOpacity(0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
+    final coldPipePaint = Paint()..color = Colors.blue.withValues(alpha: 0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
+    final hotPipePaint = Paint()..color = Colors.orange.withValues(alpha: 0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
     
     // Cold Inflow Line
     final coldPath = Path()
@@ -281,7 +281,7 @@ class SolarSchematicPainter extends CustomPainter {
       ..lineTo(tvOffset.dx + 50, tvOffset.dy - 12)
       ..lineTo(tvOffset.dx + 50, tvOffset.dy - 45);
     
-    final temperedPaint = Paint()..color = Colors.purple.withOpacity(0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
+    final temperedPaint = Paint()..color = Colors.purple.withValues(alpha: 0.85)..strokeWidth = 4.0..style = PaintingStyle.stroke;
     canvas.drawPath(deliveryPath, temperedPaint);
     
     _drawText(
@@ -294,7 +294,7 @@ class SolarSchematicPainter extends CustomPainter {
 
   /// Draws the valve control triangle symbols.
   void _drawValveSymbol(Canvas canvas, Offset offset, String label, Color color) {
-    final fillPaint = Paint()..color = color.withOpacity(0.35)..style = PaintingStyle.fill;
+    final fillPaint = Paint()..color = color.withValues(alpha: 0.35)..style = PaintingStyle.fill;
     final strokePaint = Paint()..color = color..strokeWidth = 2.0..style = PaintingStyle.stroke;
     
     final path = Path()

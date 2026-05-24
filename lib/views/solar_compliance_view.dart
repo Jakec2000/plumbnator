@@ -226,7 +226,7 @@ class LeftTelemetryPanel extends ConsumerWidget {
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               dropdownColor: Colors.grey.shade900,
@@ -259,7 +259,7 @@ class LeftTelemetryPanel extends ConsumerWidget {
             activeTrackColor: Colors.cyan,
             inactiveTrackColor: Colors.white12,
             thumbColor: Colors.cyanAccent,
-            overlayColor: Colors.cyan.withOpacity(0.2),
+            overlayColor: Colors.cyan.withValues(alpha: 0.2),
           ),
           child: Slider(value: value.clamp(min, max), min: min, max: max, onChanged: onChanged),
         ),
@@ -275,7 +275,7 @@ class LeftTelemetryPanel extends ConsumerWidget {
         Switch(
           value: value,
           activeThumbColor: Colors.cyanAccent,
-          activeTrackColor: Colors.cyan.withOpacity(0.5),
+          activeTrackColor: Colors.cyan.withValues(alpha: 0.5),
           inactiveThumbColor: Colors.white54,
           inactiveTrackColor: Colors.white12,
           onChanged: onChanged,
@@ -319,7 +319,7 @@ class RightDashboardPanel extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: state.isFullyCompliant ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                  color: state.isFullyCompliant ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -448,7 +448,7 @@ class RightDashboardPanel extends ConsumerWidget {
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(8)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
