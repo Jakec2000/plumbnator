@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/state_providers.dart';
 import '../../services/standards_search_service.dart';
 
 /// AppDrawer for mobile layouts.
@@ -9,8 +8,15 @@ class AppDrawer extends ConsumerWidget {
   /// The currently active navigation index.
   final int currentIndex;
 
+  /// Callback when a navigation destination is selected.
+  final ValueChanged<int> onDestinationSelected;
+
   /// Creates an [AppDrawer].
-  const AppDrawer({super.key, required this.currentIndex});
+  const AppDrawer({
+    super.key,
+    required this.currentIndex,
+    required this.onDestinationSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -88,7 +94,7 @@ class AppDrawer extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: InkWell(
         onTap: () {
-          ref.read(navProvider.notifier).setIndex(index);
+          onDestinationSelected(index);
           Navigator.of(context).pop(); // Close drawer
         },
         borderRadius: BorderRadius.circular(10),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/state_providers.dart';
 import '../../services/standards_search_service.dart';
 
 /// Sidebar navigation rail for desktop and web layouts.
@@ -9,8 +8,15 @@ class SidebarRail extends ConsumerWidget {
   /// The currently active navigation index.
   final int currentIndex;
 
+  /// Callback when a navigation destination is selected.
+  final ValueChanged<int> onDestinationSelected;
+
   /// Creates a [SidebarRail].
-  const SidebarRail({super.key, required this.currentIndex});
+  const SidebarRail({
+    super.key,
+    required this.currentIndex,
+    required this.onDestinationSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +61,7 @@ class SidebarRail extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: InkWell(
-        onTap: () => ref.read(navProvider.notifier).setIndex(0),
+        onTap: () => onDestinationSelected(0),
         borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
@@ -107,7 +113,7 @@ class SidebarRail extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
       child: InkWell(
-        onTap: () => ref.read(navProvider.notifier).setIndex(index),
+        onTap: () => onDestinationSelected(index),
         borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

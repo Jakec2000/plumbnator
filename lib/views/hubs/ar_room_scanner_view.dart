@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../services/ar_spatial_quoting_service.dart';
+import '../../services/pdf_export_service.dart';
 
 /// Consumer view managing dynamic AR state and layout scanning controls.
 class ArRoomScannerView extends ConsumerStatefulWidget {
@@ -775,26 +776,49 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
               ),
             ),
           ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Close Preview', style: GoogleFonts.inter(color: Colors.white54)),
-            ),
-            ElevatedButton(
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E6FF),
-                foregroundColor: const Color(0xFF070B14),
+                backgroundColor: const Color(0xFF0A0F1D),
+                foregroundColor: const Color(0xFF00FF87),
+                side: const BorderSide(color: Color(0xFF00FF87), width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Quote digital receipt compiled and uploaded to Firebase!'),
-                    backgroundColor: Color(0xFF00FF87),
-                  ),
-                );
+              onPressed: () async {
+                await PdfExportService.generateAndShareQuote(quote);
               },
-              child: Text('Submit Quote', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.download_rounded, size: 16),
+              label: Text('Download PDF', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Close Preview', style: GoogleFonts.inter(color: Colors.white54)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00E6FF),
+                    foregroundColor: const Color(0xFF070B14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Quote digital receipt compiled and uploaded to Firebase!'),
+                        backgroundColor: Color(0xFF00FF87),
+                      ),
+                    );
+                  },
+                  child: Text('Submit Quote', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
           ],
         );

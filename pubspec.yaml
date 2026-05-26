@@ -53,13 +53,15 @@ dependencies:
   flutter_dotenv: ^6.0.1
   panorama_viewer: ^2.0.7
   flutter_markdown: ^0.7.7+1
-  google_genai: ^0.0.1+1
-  google_generative_ai: ^0.4.7
   supabase_flutter: ^2.8.0
+  google_generative_ai: ^0.4.7
+  go_router: ^14.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  flutter_native_splash: ^2.4.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

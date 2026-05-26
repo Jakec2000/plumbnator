@@ -1,0 +1,12 @@
+- [x] GoRouter Migration
+  - [x] Create `lib/router/app_router.dart`
+  - [x] Modify `lib/main.dart` to use GoRouter
+  - [x] Update navigation widgets (`sidebar_rail.dart`, `app_drawer.dart`) to use `context.go`
+- [x] Production Readiness
+  - [x] Add packages `go_router` and `flutter_native_splash` to `pubspec.yaml`
+  - [x] Create `flutter_native_splash.yaml` and configure
+  - [x] Create `lib/views/error/global_error_view.dart`
+- [x] PDF Export Feature
+  - [x] Create `lib/services/pdf_export_service.dart`
+  - [x] Update `lib/views/hubs/ar_room_scanner_view.dart` to integrate PDF download button
+

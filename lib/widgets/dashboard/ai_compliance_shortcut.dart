@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/state_providers.dart';
 import '../glass_card.dart';
 
@@ -18,7 +19,7 @@ class AiComplianceShortcut extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-      onTap: () => ref.read(navProvider.notifier).setIndex(1),
+      onTap: () => context.go('/sizers'),
       child: GlassCard(
         borderColor: const Color(0xFF00E6FF).withValues(alpha: 0.4),
         backgroundGradient: [
