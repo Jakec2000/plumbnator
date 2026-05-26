@@ -11,7 +11,7 @@ import 'camera_capture_dialog.dart';
 class ControlPanel extends ConsumerWidget {
   final String? selectedPhotoName;
   final ValueChanged<String> onPhotoSelected;
-  final VoidCallback onRunAudit;
+  final Function(String? category, String? measuredDeviation) onRunAudit;
 
   const ControlPanel({
     super.key,
@@ -114,7 +114,7 @@ class ControlPanel extends ConsumerWidget {
                     if (aiState.canAnalyze) {
                       SampleGalleryDialog.show(context, (fileName) {
                         onPhotoSelected(fileName);
-                        onRunAudit();
+                        onRunAudit(null, null);
                       });
                     } else {
                       PaywallModal.show(context, ref);
@@ -145,9 +145,9 @@ class ControlPanel extends ConsumerWidget {
             onPressed: enabled
                 ? () {
                     if (aiState.canAnalyze) {
-                      CameraCaptureDialog.show(context, () {
+                      CameraCaptureDialog.show(context, (category, deviation) {
                         onPhotoSelected('Camera_Capture_Live.jpg');
-                        onRunAudit();
+                        onRunAudit(category, deviation);
                       });
                     } else {
                       PaywallModal.show(context, ref);

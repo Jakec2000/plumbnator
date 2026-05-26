@@ -8,6 +8,8 @@ class ComplianceResult {
   final DateTime timestamp;
   final bool isManualFlag;
   final String? imageUrl;
+  final String? alignmentCategory;
+  final String? measuredDeviation;
 
   const ComplianceResult({
     required this.isCompliant,
@@ -18,6 +20,8 @@ class ComplianceResult {
     required this.timestamp,
     this.isManualFlag = false,
     this.imageUrl,
+    this.alignmentCategory,
+    this.measuredDeviation,
   });
 
   /// Factory constructor to create a ComplianceResult from JSON/Map representation.
@@ -35,6 +39,8 @@ class ComplianceResult {
           : DateTime.now(),
       isManualFlag: json['isManualFlag'] as bool? ?? false,
       imageUrl: json['imageUrl'] as String?,
+      alignmentCategory: json['alignmentCategory'] as String?,
+      measuredDeviation: json['measuredDeviation'] as String?,
     );
   }
 
@@ -49,6 +55,8 @@ class ComplianceResult {
       'timestamp': timestamp.toIso8601String(),
       'isManualFlag': isManualFlag,
       'imageUrl': imageUrl,
+      'alignmentCategory': alignmentCategory,
+      'measuredDeviation': measuredDeviation,
     };
   }
 
@@ -62,6 +70,8 @@ class ComplianceResult {
     DateTime? timestamp,
     bool? isManualFlag,
     String? imageUrl,
+    String? alignmentCategory,
+    String? measuredDeviation,
   }) {
     return ComplianceResult(
       isCompliant: isCompliant ?? this.isCompliant,
@@ -72,6 +82,8 @@ class ComplianceResult {
       timestamp: timestamp ?? this.timestamp,
       isManualFlag: isManualFlag ?? this.isManualFlag,
       imageUrl: imageUrl ?? this.imageUrl,
+      alignmentCategory: alignmentCategory ?? this.alignmentCategory,
+      measuredDeviation: measuredDeviation ?? this.measuredDeviation,
     );
   }
 }

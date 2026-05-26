@@ -68,6 +68,78 @@ class AnalysisResultCard extends StatelessWidget {
                   _buildAnimatedIcon(hasFailed, themeColor),
                 ],
               ),
+              if (result.alignmentCategory != null || result.measuredDeviation != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF00E6FF).withValues(alpha: 0.25)),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF00E6FF).withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.01),
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.explore_outlined, color: Color(0xFF00E6FF), size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'VIEWFINDER ALIGNMENT METRICS',
+                              style: GoogleFonts.outfit(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF00E6FF),
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            RichText(
+                              text: TextSpan(
+                                style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                                children: [
+                                  TextSpan(text: 'Target: '),
+                                  TextSpan(
+                                    text: '${result.alignmentCategory ?? "Standard"}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                  const TextSpan(text: '  |  Telemetry: '),
+                                  TextSpan(
+                                    text: '${result.measuredDeviation ?? "Aligned"}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00FF87)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00FF87).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF00FF87).withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          'STATUTORY MET',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF00FF87),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const Divider(color: Colors.white12, height: 28),
               
               // Checklist

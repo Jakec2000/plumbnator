@@ -37,7 +37,12 @@ class _AiComplianceViewState extends ConsumerState<AiComplianceView> {
           ControlPanel(
             selectedPhotoName: _selectedPhotoName,
             onPhotoSelected: (name) => setState(() => _selectedPhotoName = name),
-            onRunAudit: () => ref.read(aiAnalysisProvider.notifier).runAnalysis([0, 1, 2, 3], persist: true),
+            onRunAudit: (category, deviation) => ref.read(aiAnalysisProvider.notifier).runAnalysis(
+                  [0, 1, 2, 3],
+                  persist: true,
+                  alignmentCategory: category,
+                  measuredDeviation: deviation,
+                ),
           ),
           if (aiState.isLoading) const ScanningProgressIndicator(),
           if (aiState.error != null) ComplianceErrorMessage(message: aiState.error!),

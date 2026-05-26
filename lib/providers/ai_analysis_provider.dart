@@ -87,7 +87,12 @@ class AiAnalysisNotifier extends Notifier<AiAnalysisState> {
     await _refreshRateLimit();
   }
 
-  Future<void> runAnalysis(List<int> imageBytes, {bool persist = false}) async {
+  Future<void> runAnalysis(
+    List<int> imageBytes, {
+    bool persist = false,
+    String? alignmentCategory,
+    String? measuredDeviation,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -95,8 +100,12 @@ class AiAnalysisNotifier extends Notifier<AiAnalysisState> {
         imageBytes: imageBytes,
         persist: persist,
       );
+      final updatedRes = res.copyWith(
+        alignmentCategory: alignmentCategory,
+        measuredDeviation: measuredDeviation,
+      );
       await _refreshRateLimit();
-      state = state.copyWith(isLoading: false, result: res);
+      state = state.copyWith(isLoading: false, result: updatedRes);
     } on RateLimitExceededException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
