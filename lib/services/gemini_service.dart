@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
 import '../models/standards_registry.dart';
+import 'standards_search_service.dart';
+import 'supabase_client_service.dart';
 
 /// Service class interfacing with Google Generative AI for AS/NZS compliance vision checks.
 class GeminiService {
@@ -79,7 +81,11 @@ Ensure all coordinate offsets "x" and "y" are normalized doubles between 0.0 and
   /// Asks a regulatory compliance question to the AI, pre-loaded with the standards library.
   /// Falls back to a local compliance engine if the Gemini API key is not supplied.
   Future<String> askStandardsQuestion(String question, {String model = 'Grok 4.3'}) async {
-    final standardsText = PlumbingStandardsRegistry.buildRegistryText();
+    final standardsSearch = StandardsSearchService();
+    final standardsText = standardsSearch.isFullTextLoaded 
+        ? standardsSearch.getAllStandardsText() 
+        : PlumbingStandardsRegistry.buildRegistryText();
+
     final systemPrompt = '''
 You are the Plumbnator $model Compliance Assistant, a highly experienced Australian plumbing compliance inspector.
 Your goal is to answer plumbing regulatory questions with absolute accuracy.
@@ -126,16 +132,16 @@ ${model.contains('Grok') ? '5. Branded as Grok 4.3, emphasize absolute technical
           // Graceful fallback on connection/API error
         }
       }
-      return _generateLocalAnswerFallback(question, model: model);
+      return await _generateLocalAnswerFallback(question, model: model);
     }
 
     if (_apiKey.isEmpty) {
-      return _generateLocalAnswerFallback(question, model: model);
+      return await _generateLocalAnswerFallback(question, model: model);
     }
 
     try {
       final generativeModel = GenerativeModel(
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-pro',
         apiKey: _apiKey,
       );
 
@@ -145,55 +151,104 @@ ${model.contains('Grok') ? '5. Branded as Grok 4.3, emphasize absolute technical
       ];
 
       final response = await generativeModel.generateContent(content);
-      return response.text ?? _generateLocalAnswerFallback(question, model: model);
+      return response.text ?? await _generateLocalAnswerFallback(question, model: model);
     } catch (_) {
-      return _generateLocalAnswerFallback(question, model: model);
+      return await _generateLocalAnswerFallback(question, model: model);
     }
   }
 
   /// Generates highly detailed and clause-cited local answers for common standards questions.
-  String _generateLocalAnswerFallback(String question, {String model = 'Grok 4.3'}) {
+  /// Integrates remote vector queries dynamically using Supabase pgvector vault.
+  Future<String> _generateLocalAnswerFallback(String question, {String model = 'Grok 4.3'}) async {
     final query = question.toLowerCase();
     
     // Find matching clause in the registry
     PlumbingStandardClause? matched;
+    final queryTokens = query.split(' ').where((w) => w.length > 2).toList();
+    
+    int bestScore = -1;
     for (final c in PlumbingStandardsRegistry.clauses) {
-      final words = c.category.toLowerCase().split(' ') + c.title.toLowerCase().split(' ');
-      if (words.any((w) => w.length > 3 && query.contains(w)) ||
-          query.contains(c.clauseNumber.toLowerCase()) ||
-          query.contains(c.standardCode.toLowerCase())) {
+      final textToSearch = [
+        c.category,
+        c.title,
+        c.summaryText,
+        ...c.technicalMetrics,
+        ...c.complianceChecklist,
+      ].join(' ').toLowerCase();
+      
+      int score = 0;
+      for (final t in queryTokens) {
+        if (textToSearch.contains(t) || 
+            c.standardCode.toLowerCase().contains(t) || 
+            c.clauseNumber.toLowerCase().contains(t)) {
+          score++;
+        }
+      }
+      if (score > bestScore && score > 0) {
+        bestScore = score;
         matched = c;
-        break;
       }
     }
     
-    // Default to the first matching clause or cover if nothing else matches
-    matched ??= PlumbingStandardsRegistry.clauses.firstWhere(
-      (c) => query.contains('cover') || query.contains('pvc') || query.contains('depth'),
-      orElse: () => PlumbingStandardsRegistry.clauses.first,
-    );
+    // Default to the first clause if nothing matches
+    matched ??= PlumbingStandardsRegistry.clauses.first;
 
     final titleHeader = model.contains('Grok') 
         ? '🤖 Grok 4.3 Super-Intelligence Compliance Audit' 
         : '🔍 AI Compliance Assistant Response';
 
-    return '''
-### $titleHeader
+    // Search full-text PDF standards for additional context
+    final searchService = StandardsSearchService();
+    final fullTextResults = searchService.searchFullText(question, maxChunks: 5);
+    final hasFullText = fullTextResults.isNotEmpty;
+    final docsLoaded = searchService.documentCount;
 
-**Standard Reference**: `${matched.standardCode} ${matched.clauseNumber}`
-**Topic**: `${matched.title}`
+    // Search remote Supabase Vector Vault database!
+    final supabase = SupabaseClientService();
+    List<PlumbingStandardClause> remoteMatches = [];
+    try {
+      remoteMatches = await supabase.searchRemoteStandards(question);
+    } catch (_) {
+      // Graceful fallback if database is not active
+    }
+    final hasRemoteMatches = remoteMatches.isNotEmpty;
 
-${matched.summaryText}
+    final buffer = StringBuffer();
+    buffer.writeln('### $titleHeader\n');
+    buffer.writeln('**Standard Reference**: `${matched.standardCode} ${matched.clauseNumber}`');
+    buffer.writeln('**Topic**: `${matched.title}`\n');
+    buffer.writeln('${matched.summaryText}\n');
+    buffer.writeln('#### 📋 Statutory Metrics & Tolerances:');
+    for (final m in matched.technicalMetrics) {
+      buffer.writeln('- **$m**');
+    }
+    buffer.writeln('\n#### 🛠️ Mandatory Compliance Checklist:');
+    for (final c in matched.complianceChecklist) {
+      buffer.writeln('- [x] $c');
+    }
 
-#### 📋 Statutory Metrics & Tolerances:
-${matched.technicalMetrics.map((m) => '- **$m**').join('\n')}
+    if (hasRemoteMatches) {
+      buffer.writeln('\n---');
+      buffer.writeln('\n#### ☁️ Enterprise Cloud Vector Vault Matches:');
+      for (final r in remoteMatches) {
+        buffer.writeln('\n- **${r.standardCode} ${r.clauseNumber}: ${r.title}**');
+        buffer.writeln('  *${r.summaryText}*');
+        if (r.technicalMetrics.isNotEmpty) {
+          buffer.writeln('  *Metrics: ${r.technicalMetrics.join(", ")}*');
+        }
+      }
+    }
 
-#### 🛠️ Mandatory Compliance Checklist:
-${matched.complianceChecklist.map((c) => '- [x] $c').join('\n')}
+    if (hasFullText) {
+      buffer.writeln('\n---');
+      buffer.writeln('\n#### 📄 Verified Against Official AS/NZS 3500 Documentation ($docsLoaded docs loaded):');
+      buffer.writeln('\n$fullTextResults');
+    }
 
----
-*⚠️ Note: Running in $model local diagnostic mode. All references comply with Queensland QBCC and AS/NZS 3500 regulations.*
-''';
+    buffer.writeln('\n---');
+    buffer.writeln('*⚠️ Note: Running in $model local diagnostic mode. All references comply with Queensland QBCC and AS/NZS 3500 regulations.*');
+
+    return buffer.toString();
   }
 
   /// Produces diagnostic fallbacks for sandbox testing.

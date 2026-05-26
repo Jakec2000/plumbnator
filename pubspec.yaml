@@ -38,7 +38,6 @@ dependencies:
   google_fonts: ^8.1.0
   font_awesome_flutter: ^11.0.0
   intl: ^0.20.2
-  google_generative_ai: ^0.4.7
   firebase_core: ^4.9.0
   cloud_firestore: ^6.4.1
   pdf: ^3.12.0
@@ -53,6 +52,10 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_dotenv: ^6.0.1
   panorama_viewer: ^2.0.7
+  flutter_markdown: ^0.7.7+1
+  google_genai: ^0.0.1+1
+  google_generative_ai: ^0.4.7
+  supabase_flutter: ^2.8.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +67,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  fake_cloud_firestore: ^4.1.1
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -106,5 +112,9 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf

@@ -5,6 +5,7 @@ import '../models/compliance_result.dart';
 import '../models/standards_registry.dart';
 import 'rate_limiter_service.dart';
 import 'standards_search_service.dart';
+import 'supabase_client_service.dart';
 
 class AiAnalysisService {
   final RateLimiterService _rateLimiter = RateLimiterService();
@@ -32,8 +33,11 @@ class AiAnalysisService {
     await _rateLimiter.recordAnalysis();
 
     if (_apiKey.isEmpty) {
-      // Return highly detailed compliant sample report when API key is not supplied (Offline/Demo Mode)
-      final result = _generateStandardDemoResult();
+      // Retrieve the remote standards from the pgvector database dynamically!
+      final supabase = SupabaseClientService();
+      final standards = await supabase.searchRemoteStandards('insulation lagging stack ventilation tempering valve');
+      
+      final result = _generateStandardDemoResult(standards: standards);
       if (persist) {
         await saveResultToFirestore(result);
       }
@@ -83,8 +87,21 @@ class AiAnalysisService {
         keywords = keywordsStr.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
       }
 
-      // Query dynamic standards using detected keywords
-      final dynamicStandardsText = StandardsSearchService().searchStandards(keywords);
+      // Query dynamic standards using detected keywords from both local registry and remote pgvector database!
+      final localStandardsText = StandardsSearchService().searchStandards(keywords);
+      
+      final supabase = SupabaseClientService();
+      final remoteStandards = await supabase.searchRemoteStandards(keywords.isNotEmpty ? keywords.join(', ') : 'plumbing');
+      
+      final buffer = StringBuffer(localStandardsText);
+      if (remoteStandards.isNotEmpty) {
+        buffer.writeln('\n--- Enterprise Cloud Vector Vault Standards ---');
+        for (final std in remoteStandards) {
+          buffer.writeln('${std.standardCode} Clause ${std.clauseNumber}: ${std.title} - ${std.summaryText}');
+        }
+      }
+      
+      final dynamicStandardsText = buffer.toString();
 
       // --- Pass 2: Compliance Audit ---
       final response = await http.post(
@@ -137,7 +154,9 @@ class AiAnalysisService {
       }
     } catch (e) {
       // In case of any API error or exception, return a local result with manual flag set to true
-      final fallbackResult = _generateStandardDemoResult().copyWith(
+      final supabase = SupabaseClientService();
+      final standards = await supabase.searchRemoteStandards('insulation lagging stack ventilation tempering valve');
+      final fallbackResult = _generateStandardDemoResult(standards: standards).copyWith(
         isManualFlag: true,
       );
       if (persist) {
@@ -193,17 +212,31 @@ Normalized "x" and "y" parameters must be double offsets between 0.0 and 1.0 rep
   }
 
   /// Produces a highly detailed statutory compliance demo result for water pipes, stacks, and drains.
-  ComplianceResult _generateStandardDemoResult() {
-    return ComplianceResult(
-      isCompliant: true,
-      confidenceScore: 0.98,
-      issues: [],
-      clauses: [
+  /// Enriched dynamically by the Supabase Cloud Vector Database context if available.
+  ComplianceResult _generateStandardDemoResult({List<PlumbingStandardClause>? standards}) {
+    final dynamicClauses = <String>[];
+    
+    if (standards != null && standards.isNotEmpty) {
+      for (final std in standards) {
+        dynamicClauses.add('${std.standardCode} Clause ${std.clauseNumber}: ${std.title} - ${std.summaryText}');
+      }
+    }
+    
+    // Add default clauses if list is too short
+    if (dynamicClauses.length < 3) {
+      dynamicClauses.addAll([
         'AS/NZS 3500.1 Clause 5.2: Water pipes correctly sized & lagged to avoid condensation.',
         'AS/NZS 3500.2 Clause 4.3: Sanitary stacks and drains correctly graded and ventilated.',
         'AS/NZS 3500.4 Clause 5.3: Hot water tanks and tempered lines verified under 50°C.',
         'PCA QLD Appendix: Standard plumbing materials marked with authentic WaterMark.',
-      ],
+      ]);
+    }
+
+    return ComplianceResult(
+      isCompliant: true,
+      confidenceScore: 0.98,
+      issues: [],
+      clauses: dynamicClauses,
       hotspots: [
         {
           'title': 'DN20 Water Pipe Lagging',

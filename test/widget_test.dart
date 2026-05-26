@@ -14,7 +14,8 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     // Verify that our brand and main title are rendered in the shell.
     expect(find.text('PLUMBNATOR QLD'), findsOneWidget);

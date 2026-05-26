@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../widgets/glass_card.dart';
 import '../providers/state_providers.dart';
 
@@ -51,70 +52,388 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
 
   /// Pre-seeded database of Queensland regulatory standards guidelines.
   final List<StandardRef> _standards = const [
+    // --- Drainage ---
     StandardRef(
       title: 'Minimum Drainage Pipe Cover',
       standardCode: 'AS/NZS 3500.2 Clause 4.4',
       category: 'Drainage',
-      description: 'Minimum physical cover over underground PVC pipes to prevent damage.',
+      description: 'Minimum physical soil cover depth over underground PVC lines to resist traffic damage.',
       keyMetrics: [
-        'Domestic Yards (No Traffic): 300 mm',
-        'Driveways & Vehicle Pavements: 450 mm',
-        'Protected under Concrete Slabs: 100 mm',
+        'Domestic Yards (No Traffic): 300 mm minimum',
+        'Driveways & Vehicle Pavements: 450 mm minimum',
+        'Heavy Roadways (Unpaved): 750 mm minimum',
+        'Protected under Concrete Slabs: 100 mm minimum',
       ],
     ),
     StandardRef(
       title: 'Drainage Pipeline Grades',
       standardCode: 'AS/NZS 3500.2 Table 6.1',
       category: 'Drainage',
-      description: 'Strict installation grades for sanitary sewer lines to ensure adequate flushing.',
+      description: 'Strict installation fall grades for sanitary sewer lines to secure self-cleansing velocities.',
       keyMetrics: [
-        'DN80 Sewer Run: Min 2.50% (1:40)',
-        'DN100 Sewer Run: Min 1.65% (1:60)',
-        'DN150 Sewer Run: Min 1.20% (1:80)',
+        'DN80 Sewer Run: Min grade 2.50% (1:40)',
+        'DN100 Sewer Run: Min grade 1.65% (1:60)',
+        'DN150 Sewer Run: Min grade 1.20% (1:80)',
       ],
     ),
+    StandardRef(
+      title: 'Sanitary Stack Vent Heights',
+      standardCode: 'AS/NZS 3500.2 Clause 6.5',
+      category: 'Drainage',
+      description: 'Height limits for sanitary vent terminals above roofs and away from openable windows.',
+      keyMetrics: [
+        'Termination above roof line: 150 mm minimum',
+        'Clearance to openable windows/doors: 3.0 m minimum unless 600mm above window head',
+      ],
+    ),
+    StandardRef(
+      title: 'PVC Clip Spacing Limits',
+      standardCode: 'AS/NZS 3500.2 Table 4.3',
+      category: 'Drainage',
+      description: 'Maximum allowable spacing for support brackets to prevent PVC line sagging.',
+      keyMetrics: [
+        'DN40 to DN50 PVC: Max 1.2 m spacing',
+        'DN65 to DN100 PVC: Max 1.5 m spacing',
+        'DN150 PVC: Max 2.0 m spacing',
+        'Vertical stacks: Max 2.5 m spacing',
+      ],
+    ),
+    StandardRef(
+      title: 'Fixture Discharge Pipe Sizing',
+      standardCode: 'AS/NZS 3500.2 Clause 4.6.2',
+      category: 'Drainage',
+      description: 'Minimum internal sizing for fixture branches based on fixture unit (FU) discharge.',
+      keyMetrics: [
+        'Water Closet (Toilet): DN100 minimum size',
+        'Kitchen Sinks & Laundry Troughs: DN50 minimum size',
+        'Hand Basin: DN40 minimum size',
+      ],
+    ),
+    StandardRef(
+      title: 'Trench Shoring Safety Limits',
+      standardCode: 'AS/NZS 3500.2 Clause 3.4',
+      category: 'Drainage',
+      description: 'Mandatory structural shoring requirements for sewer trench excavations.',
+      keyMetrics: [
+        'Shoring Trigger Depth: > 1.5 m vertical trench face',
+        'Trench Width: Min 200 mm wider than pipe outer diameter',
+        'Soil Spoils: Stacked min 1.0 m clear of trench edge',
+      ],
+    ),
+    StandardRef(
+      title: 'Boundary Trap Requirements',
+      standardCode: 'AS/NZS 3500.2 Clause 4.7.1',
+      category: 'Drainage',
+      description: 'Isolating property sewer lines from public mains to arrest gas entering homes.',
+      keyMetrics: [
+        'Location: Must sit inside property near boundary line',
+        'Riser Shaft: Sealed, gas-tight inspection shaft to surface',
+        'Fresh Air Inlet: Fitted with cowl where council mandated',
+      ],
+    ),
+    StandardRef(
+      title: 'Inspection Opening (IO) Intervals',
+      standardCode: 'AS/NZS 3500.2 Clause 13.2',
+      category: 'Drainage',
+      description: 'Maximum spacing between clear-out openings on straight sewer pipeline runs.',
+      keyMetrics: [
+        'Straight runs: Max 30 m spacing between IO access points',
+        'Direction changes: Mandatory if angle exceeds 45 degrees',
+        'Stack points: Mandatory at bases of all soil and waste stacks',
+      ],
+    ),
+    StandardRef(
+      title: 'Drainage Junction Sweeps',
+      standardCode: 'AS/NZS 3500.2 Clause 4.8.4',
+      category: 'Drainage',
+      description: 'Prohibiting sharp square branches to avoid line obstructions and plumbing blockages.',
+      keyMetrics: [
+        'Permissible fittings: Sweep junctions or 45-degree wyes',
+        'Prohibited: 90-degree square tee junctions on sanitary drains',
+      ],
+    ),
+
+    // --- Water Supply ---
     StandardRef(
       title: 'Static Water Outlet Pressure Cap',
       standardCode: 'AS/NZS 3500.1 Clause 3.4',
       category: 'Water Supply',
-      description: 'Maximum allowable static pressure inside residential or commercial buildings.',
+      description: 'Maximum static water pressure at any outlet inside buildings to protect valves.',
       keyMetrics: [
         'Max static outlet pressure: 500 kPa',
-        'Remedy if > 500 kPa: Install Pressure Limiting Valve (PLV)',
-        'Exceptions: Fire service and dedicated bypass lines',
+        'Remedy: Install pressure limiting valve (PLV) at boundary',
+        'Exemptions: Dedicated fire service runs',
       ],
     ),
+    StandardRef(
+      title: 'Pipe Lagging & Insulation',
+      standardCode: 'AS/NZS 3500.1 Clause 5.2',
+      category: 'Water Supply',
+      description: 'Insulation bounds for water piping to stop heat loss, freezing, or condensation.',
+      keyMetrics: [
+        'DN20+ Copper Pipes: Lagging required',
+        'Insulation Value: R-0.3 to R-0.6 minimum',
+        'Frost Regions: 9mm thick protection required',
+      ],
+    ),
+    StandardRef(
+      title: 'Flow Velocity Speed Caps',
+      standardCode: 'AS/NZS 3500.1 Clause 3.3.2',
+      category: 'Water Supply',
+      description: 'Velocity bounds inside pipelines to prevent copper erosion and acoustic noise.',
+      keyMetrics: [
+        'Copper pipelines: Max velocity 2.0 m/s',
+        'Plastic pipelines (PEX/Poly): Max velocity 3.0 m/s',
+      ],
+    ),
+    StandardRef(
+      title: 'Water Meter Connection Spacing',
+      standardCode: 'AS/NZS 3500.1 Clause 11.2',
+      category: 'Water Supply',
+      description: 'Accessibility and spacing limits for sub-meters and property boundaries.',
+      keyMetrics: [
+        'Meter Ground Clearance: Min 150 mm height',
+        'Sub-meter Spacing: Min 150 mm clear space between parallel meters',
+        'Boundary Setback: Max 1.0 m distance from front boundary line',
+      ],
+    ),
+
+    // --- Backflow ---
+    StandardRef(
+      title: 'Backflow Hazard Device Ratings',
+      standardCode: 'AS/NZS 3500.1 Clause 14.2.3',
+      category: 'Backflow',
+      description: 'Device matching logic based on cross-connection hazard threat to potable mains.',
+      keyMetrics: [
+        'High Hazard: Reduced Pressure Zone Device (RPZD) or air gap',
+        'Medium Hazard: Double Check Valve (DCV) assembly',
+        'Low Hazard: Dual Check Valve or non-return valves',
+      ],
+    ),
+    StandardRef(
+      title: 'RPZD Valve Test Tolerances',
+      standardCode: 'AS 2845.3 Section 4',
+      category: 'Backflow',
+      description: 'Minimum hydraulic pressure differentials required during annual backflow certification.',
+      keyMetrics: [
+        'First Check Valve: Min 35 kPa drop across seating',
+        'Relief Port Opening: Must open at or before 14 kPa point',
+        'Second Check Valve: Min 7 kPa drop across seating',
+      ],
+    ),
+
+    // --- Stormwater ---
+    StandardRef(
+      title: 'Stormwater Pipe Sizing',
+      standardCode: 'AS/NZS 3500.3 Table 5.2',
+      category: 'Stormwater',
+      description: 'Minimum pipe dimensions for roof and yard runoff based on catchment metrics.',
+      keyMetrics: [
+        'DN90 Max Catchment: 60 m² (at 1:100 grade)',
+        'DN100 Max Catchment: 130 m² (at 1:100 grade)',
+        'ARI Compliance: Must manage 1-in-100-year rainfall event',
+      ],
+    ),
+    StandardRef(
+      title: 'Box Gutter Dimensions',
+      standardCode: 'AS/NZS 3500.3 Table 3.1',
+      category: 'Stormwater',
+      description: 'Design requirements for box gutters to stop internal overflowing.',
+      keyMetrics: [
+        'Minimum width: 200 mm width tray',
+        'Minimum grade: 1:200 (0.50% fall)',
+        'Safety: Overflow sumps or side rainheads mandatory',
+      ],
+    ),
+    StandardRef(
+      title: 'Downpipe Layout Spacings',
+      standardCode: 'AS/NZS 3500.3 Clause 8.2',
+      category: 'Stormwater',
+      description: 'Spacing limits for downpipe placement to ensure fast gutter drainage.',
+      keyMetrics: [
+        'Max Gutter length per downpipe: 12.0 m spacing',
+        'Cross-sectional sizing: Custom mapped to rain intensity',
+      ],
+    ),
+    StandardRef(
+      title: 'Rainwater Tank Overflow Outlets',
+      standardCode: 'AS/NZS 3500.3 Clause 3.5',
+      category: 'Stormwater',
+      description: 'Plumbing limits for rainwater vessel overflow pipes to avert localized erosion.',
+      keyMetrics: [
+        'Overflow Outlet Pipe: Min matching diameter of inlet line',
+        'Potable Feed Top-up: Isolated using registered air gap',
+      ],
+    ),
+
+    // --- Gas ---
+    StandardRef(
+      title: 'Gas Installation Ventilation',
+      standardCode: 'AS/NZS 5601.1 Clause 6.3',
+      category: 'Gas',
+      description: 'Fresh combustion ventilation criteria for gas appliances in tight zones.',
+      keyMetrics: [
+        'Type A non-flued: 10 cm² free area per MJ/hr rating',
+        'Grid openings: Two separate ducts (one high, one low)',
+      ],
+    ),
+    StandardRef(
+      title: 'Gas Pipe Design Pressure Drop',
+      standardCode: 'AS/NZS 5601.1 Table 4.1',
+      category: 'Gas',
+      description: 'Maximum pressure drop limits inside gas piping to protect burner flame profiles.',
+      keyMetrics: [
+        'Natural Gas (NG): Max 0.075 kPa drop',
+        'LPG systems: Max 0.25 kPa drop',
+      ],
+    ),
+    StandardRef(
+      title: 'Gas Pipe Clip Spacing',
+      standardCode: 'AS/NZS 5601.1 Clause 5.6',
+      category: 'Gas',
+      description: 'Maximum spacing for gas lines to prevent mechanical line stresses.',
+      keyMetrics: [
+        'DN20 Copper Gas Pipe: Max 2.0 m horizontal / 2.5 m vertical',
+        'DN25 Steel Gas Pipe: Max 2.5 m horizontal / 3.0 m vertical',
+      ],
+    ),
+    StandardRef(
+      title: 'Gas Cooktop Fire Clearances',
+      standardCode: 'AS/NZS 5601.1 Clause 6.10.1.1',
+      category: 'Gas',
+      description: 'Safe vertical distances from burner crowns to combustible cupboards.',
+      keyMetrics: [
+        'Vertical to Rangehood: 600 mm minimum clearance',
+        'Vertical to Exhaust Fan: 750 mm minimum clearance',
+        'Horizontal to Combustibles: 200 mm minimum clearance',
+      ],
+    ),
+
+    // --- Solar / Hot Water ---
     StandardRef(
       title: 'Tempering Valve Limits',
       standardCode: 'AS/NZS 3500.4 Clause 1.9',
-      category: 'Water Supply',
-      description: 'Strict outlet temperature ceilings for hot water lines to prevent scalding.',
+      category: 'Solar / Hot Water',
+      description: 'Maximum temperature limits for personal hygiene outlets to stop scalding.',
       keyMetrics: [
-        'Sanitary Outlets (Showers/Baths): Max 50°C',
-        'Early Education & Aged Care: Max 45°C',
-        'Kitchen/Laundry Outlets: Valve bypass allowed (50-60°C)',
+        'Sanitary Outlets (Showers/Baths): 50°C maximum',
+        'Aged Care & Child Care facilities: 45°C maximum',
+        'Kitchen/Laundry Outlets: 60°C bypass permitted',
       ],
     ),
     StandardRef(
-      title: 'QBCC Form 4 Lodgement Timelines',
-      standardCode: 'QBCC Notifiable Work Regulation',
-      category: 'QBCC / QLD Regs',
-      description: 'Statutory deadline to submit Form 4 Notifiable Work lodgements with the QLD Regulator.',
+      title: 'Legionella Storage Set-point',
+      standardCode: 'AS/NZS 3500.4 Clause 4.2',
+      category: 'Solar / Hot Water',
+      description: 'Core storage temperatures to arrest bacterial growth in cylinders.',
       keyMetrics: [
-        'Lodgement Window: Within 10 business days',
-        'Trigger: Upon completion of the relevant physical works',
-        'Enforcement: Fines apply to unlicensed or late submissions',
+        'Minimum tank core temperature: 60°C set-point',
       ],
     ),
     StandardRef(
-      title: 'Form 9 Backflow Prevention Testing',
+      title: 'Solar Collector Mountings',
+      standardCode: 'AS/NZS 3500.4 Clause 7.2',
+      category: 'Solar / Hot Water',
+      description: 'Directives for secure installation of solar thermal units on pitched roofs.',
+      keyMetrics: [
+        'Mount certification: Compliant with AS 1170.2 wind load checks',
+        'Expansion Valve (ECV): Cold water expansion release valve mandatory',
+      ],
+    ),
+    StandardRef(
+      title: 'Thermal siphon Heat Traps',
+      standardCode: 'AS/NZS 3500.4 Clause 8.2.2',
+      category: 'Solar / Hot Water',
+      description: 'Mandatory heat traps to prevent passive heat rising into cold inlets.',
+      keyMetrics: [
+        'Vertical drop depth: Min 150 mm loop drop',
+        'Applications: Both hot inlet and cold outlet pipes',
+      ],
+    ),
+    StandardRef(
+      title: 'Heater Safe Tray Rules',
+      standardCode: 'AS/NZS 3500.4 Clause 4.6',
+      category: 'Solar / Hot Water',
+      description: 'Overflow trays beneath units placed in ceiling spaces or cabinets.',
+      keyMetrics: [
+        'Tray Drainage sizing: DN50 minimum diameter',
+        'Exit point: Routed to a conspicuous external location',
+      ],
+    ),
+    StandardRef(
+      title: 'PTRV Copper Relief Outlets',
+      standardCode: 'AS/NZS 3500.4 Clause 5.12',
+      category: 'Solar / Hot Water',
+      description: 'Safe drainage lines for heater relief valves to avoid steam accidents.',
+      keyMetrics: [
+        'Material type: Strictly copper piping (no plastics)',
+        'Pipe Sizing: DN15 or DN20 sizing',
+        'Discharge: Facing downwards above gully or onto lawns',
+      ],
+    ),
+
+    // --- Fire Services ---
+    StandardRef(
+      title: 'Fire Reel Flow Rate',
+      standardCode: 'AS 2441-2005 Clause 4.2',
+      category: 'Fire Services',
+      description: 'Minimum hydraulic criteria for building emergency fire hose reels.',
+      keyMetrics: [
+        'Flow rate: Min 0.33 L/s at nozzle outlet',
+        'Static Pressure: Min 220 kPa at connection point',
+        'Hose length: Max 36.0 m',
+      ],
+    ),
+    StandardRef(
+      title: 'Fire Mains Containment',
+      standardCode: 'AS 2441-2005 Clause 2.3',
+      category: 'Fire Services',
+      description: 'Mandatory boundary backflow prevention for dedicated fire services.',
+      keyMetrics: [
+        'Required device: Testable Double Check Valve (DCV) assembly',
+        'Accessories: Dual shut-off isolating valves and strainers',
+      ],
+    ),
+
+    // --- QBCC / QLD Regs ---
+    StandardRef(
+      title: 'Form 9 Backflow Certification',
       standardCode: 'Plumbing & Drainage Act 2018 (QLD)',
       category: 'QBCC / QLD Regs',
-      description: 'Queensland guidelines for commissioning testable backflow prevention devices annually.',
+      description: 'Queensland guidelines for annual testing of high-hazard backflow check valves.',
       keyMetrics: [
-        'Form 9 Lodgement: Within 10 business days of test',
-        'Commissioning: Mandatory annually by licensed backflow tester',
-        'Council Registry: Device serial numbers registered locally',
+        'Form 9 lodgement: Within 10 business days of test completion',
+        'Testing interval: Every 12 months by an endorsed backflow technician',
+      ],
+    ),
+    StandardRef(
+      title: 'QBCC Form 4 Submission Timelines',
+      standardCode: 'QBCC Regulations',
+      category: 'QBCC / QLD Regs',
+      description: 'Statutory deadline to submit notifiable work certificates with the commission.',
+      keyMetrics: [
+        'Lodgement Window: Within 10 business days',
+        'Requirements: WaterMark materials list and client address details',
+      ],
+    ),
+    StandardRef(
+      title: 'Form 1 Permit Applications',
+      standardCode: 'Plumbing & Drainage Act 2018 (QLD)',
+      category: 'QBCC / QLD Regs',
+      description: 'Council permit authorizations required before launching commercial or major works.',
+      keyMetrics: [
+        'Approval: Mandated BEFORE breaking ground or installing drains',
+        'Documents: Architectural floorplans and engineer calculations',
+      ],
+    ),
+    StandardRef(
+      title: 'Form 12 Aspect Sign-offs',
+      standardCode: 'QBCC Regulations',
+      category: 'QBCC / QLD Regs',
+      description: 'Aspect sign-off certificates required for structural under-slab works.',
+      keyMetrics: [
+        'Lodgement: Within 5 business days of inspection',
+        'Applies to: Concrete slab pre-pours and property boundary connections',
       ],
     ),
   ];
@@ -290,9 +609,11 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
 
   /// Category filter chips for static library index.
   Widget _buildCategoryChips() {
-    final categories = ['All', 'Drainage', 'Water Supply', 'QBCC / QLD Regs'];
+    final categories = ['All', 'Drainage', 'Water Supply', 'Backflow', 'QBCC / QLD Regs', 'Stormwater', 'Gas', 'Solar / Hot Water', 'Fire Services'];
 
-    return Row(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
       children: categories.map((cat) {
         final isSelected = _selectedCategory == cat;
         return Padding(
@@ -320,6 +641,7 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
           ),
         );
       }).toList(),
+    ),
     );
   }
 
@@ -563,12 +885,35 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
             borderRadius: 12,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: SelectableText(
-                msg.text,
-                style: GoogleFonts.inter(
-                  fontSize: 12.5,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  height: 1.4,
+              child: MarkdownBody(
+                data: msg.text,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet(
+                  p: GoogleFonts.inter(
+                    fontSize: 12.5,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    height: 1.4,
+                  ),
+                  strong: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  code: GoogleFonts.sourceCodePro(
+                    fontSize: 12,
+                    color: const Color(0xFF00FFCC),
+                    backgroundColor: Colors.black26,
+                  ),
+                  h3: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF00E6FF),
+                  ),
+                  h4: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  listBullet: const TextStyle(color: Color(0xFF00E6FF)),
                 ),
               ),
             ),
@@ -583,7 +928,10 @@ class _StandardsLibraryViewState extends ConsumerState<StandardsLibraryView> {
     final prompts = [
       'What is PVC cover limit?',
       'Tell me static water limits',
-      'What is QLD Form 4 timeline?'
+      'What is QLD Form 4 timeline?',
+      'DN100 drainage grade?',
+      'Tempering valve limits?',
+      'Stormwater pipe sizing?',
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

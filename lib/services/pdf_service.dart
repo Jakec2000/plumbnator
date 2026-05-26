@@ -1,19 +1,34 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/models.dart';
 
 /// Service class utilizing the pdf package to compile beautifully styled reports.
 class PdfService {
+  pw.Font? _baseFont;
+
+  Future<pw.ThemeData> _getTheme() async {
+    if (_baseFont == null) {
+      final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+      _baseFont = pw.Font.ttf(fontData);
+    }
+    return pw.ThemeData.withFont(base: _baseFont);
+  }
+
   /// Generates a professional pre-start safety SWMS report for QLD WHS compliance.
   Future<Uint8List> generateSwmsPdf(SwmsProfile profile) async {
     final pdf = pw.Document();
+    final theme = await _getTheme();
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          theme: theme,
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -45,11 +60,15 @@ class PdfService {
   /// Generates a statutory QBCC Form 4 lodging certificate receipt.
   Future<Uint8List> generateForm4Pdf(PlumbingJob job) async {
     final pdf = pw.Document();
+    final theme = await _getTheme();
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          theme: theme,
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -83,11 +102,15 @@ class PdfService {
   /// Generates a statutory QBCC Form 9 Backflow Prevention device certificate.
   Future<Uint8List> generateForm9Pdf(BackflowDevice device) async {
     final pdf = pw.Document();
+    final theme = await _getTheme();
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          theme: theme,
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+        ),
         build: (pw.Context context) {
           final isPass = device.passesInspection;
           final statusText = isPass ? 'PASS (AS 2845.3 Compliant)' : 'FAIL (Non-Compliant)';
@@ -189,10 +212,15 @@ class PdfService {
       );
     }
 
+    final theme = await _getTheme();
+
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        pageTheme: pw.PageTheme(
+          theme: theme,
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -319,7 +347,7 @@ class PdfService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(
-              'PLUMBNATOR COMPLIANCE ENGINE — AS/NZS 3500 & PCA',
+              'PLUMBNATOR COMPLIANCE ENGINE - AS/NZS 3500 & PCA',
               style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
             ),
             pw.Column(

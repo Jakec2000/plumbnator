@@ -3,14 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ai_diagnostic_scanner_view.dart';
 
 class HomeownerDashboard extends StatelessWidget {
-  const HomeownerDashboard({super.key});
+  final FirebaseFirestore? firestore;
+  const HomeownerDashboard({super.key, this.firestore});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('My Digital Twin - Live Sync')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('alerts').snapshots(),
+        stream: (firestore ?? FirebaseFirestore.instance).collection('alerts').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Colors.cyanAccent));
