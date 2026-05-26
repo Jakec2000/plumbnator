@@ -226,37 +226,45 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00E6FF).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E6FF).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.threed_rotation, color: Color(0xFF00E6FF), size: 20),
                 ),
-                child: const Icon(Icons.threed_rotation, color: Color(0xFF00E6FF), size: 20),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AR SPATIAL SIZER',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: Colors.white,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'AR SPATIAL SIZER',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'Real-time point-cloud scanning, automatic AS/NZS 3500 gradient audit & digital quoting',
+                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Real-time point-cloud scanning, automatic AS/NZS 3500 gradient audit & digital quoting',
-                    style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 16),
           InkWell(
             onTap: _clearAnchors,
             borderRadius: BorderRadius.circular(8),
@@ -286,8 +294,8 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
 
   Widget _buildArControlBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF0A0F1D),
         borderRadius: BorderRadius.circular(12),
@@ -302,7 +310,15 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Simulated Device Yaw: ${_deviceYaw.toStringAsFixed(0)}°', style: GoogleFonts.inter(fontSize: 12, color: Colors.white70)),
+                    Expanded(
+                      child: Text(
+                        'Yaw: ${_deviceYaw.toStringAsFixed(0)}°',
+                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     const Icon(Icons.rotate_left, size: 14, color: Colors.white38),
                   ],
                 ),
@@ -317,7 +333,7 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
               ],
             ),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +341,15 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Simulated Device Pitch: ${_devicePitch.toStringAsFixed(0)}°', style: GoogleFonts.inter(fontSize: 12, color: Colors.white70)),
+                    Expanded(
+                      child: Text(
+                        'Pitch: ${_devicePitch.toStringAsFixed(0)}°',
+                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     const Icon(Icons.unfold_more, size: 14, color: Colors.white38),
                   ],
                 ),
@@ -340,7 +364,7 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
               ],
             ),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,7 +372,15 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Laser Distance: ${_laserDistance.toStringAsFixed(2)}m', style: GoogleFonts.inter(fontSize: 12, color: Colors.white70)),
+                    Expanded(
+                      child: Text(
+                        'Laser: ${_laserDistance.toStringAsFixed(2)}m',
+                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     const Icon(Icons.settings_overscan, size: 14, color: Colors.white38),
                   ],
                 ),
@@ -376,47 +408,59 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
       {'name': 'Commercial Cafe', 'l': 8.5, 'w': 4.5, 'h': 3.2, 'icon': Icons.restaurant_menu_outlined},
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 2.8,
-      ),
-      itemCount: presets.length,
-      itemBuilder: (context, idx) {
-        final p = presets[idx];
-        final isSelected = _roomType == p['name'];
-        final color = isSelected ? const Color(0xFF00E6FF) : Colors.white24;
-        return InkWell(
-          onTap: () => _applyPreset(p['name'], p['l'], p['w'], p['h']),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.01),
-              border: Border.all(color: color.withValues(alpha: isSelected ? 0.3 : 0.1)),
-            ),
-            child: Row(
-              children: [
-                Icon(p['icon'], color: isSelected ? const Color(0xFF00E6FF) : Colors.white54, size: 16),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: isSelected ? Colors.white : Colors.white70)),
-                      Text('${p['l']}m × ${p['w']}m × ${p['h']}m', style: GoogleFonts.inter(fontSize: 10, color: Colors.white38)),
-                    ],
-                  ),
-                )
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double itemWidth = (constraints.maxWidth - 8) / 2;
+        const double itemHeight = 74.0;
+        final double aspectRatio = itemWidth / itemHeight;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: aspectRatio,
           ),
+          itemCount: presets.length,
+          itemBuilder: (context, idx) {
+            final p = presets[idx];
+            final isSelected = _roomType == p['name'];
+            final color = isSelected ? const Color(0xFF00E6FF) : Colors.white24;
+            return InkWell(
+              onTap: () => _applyPreset(p['name'], p['l'], p['w'], p['h']),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: isSelected ? const Color(0xFF00E6FF).withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.01),
+                  border: Border.all(color: color.withValues(alpha: isSelected ? 0.3 : 0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(p['icon'], color: isSelected ? const Color(0xFF00E6FF) : Colors.white54, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            p['name'],
+                            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: isSelected ? Colors.white : Colors.white70),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text('${p['l']}m × ${p['w']}m × ${p['h']}m', style: GoogleFonts.inter(fontSize: 10, color: Colors.white38)),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -440,7 +484,9 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white.withValues(alpha: 0.03),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     side: const BorderSide(color: Colors.white10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -451,12 +497,21 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
                     final ry = (rng.nextDouble() * (_roomWidth - 0.6) + 0.3);
                     _addAnchor(cat['type'], cat['name'].substring(4), rx, ry, cat['z']);
                   },
-                  child: Column(
-                    children: [
-                      Icon(cat['icon'], size: 16, color: const Color(0xFF00FF87)),
-                      const SizedBox(height: 4),
-                      Text(cat['type'].toUpperCase(), style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white70)),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(cat['icon'], size: 16, color: const Color(0xFF00FF87)),
+                        const SizedBox(height: 4),
+                        Text(
+                          cat['type'].toUpperCase(),
+                          style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white70),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -888,6 +943,8 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
       child: Text(
         text,
         style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -903,6 +960,8 @@ class _ArRoomScannerViewState extends ConsumerState<ArRoomScannerView> with Sing
           color: isBold ? Colors.white70 : Colors.white54,
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
         ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

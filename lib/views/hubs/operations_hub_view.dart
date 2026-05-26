@@ -16,7 +16,7 @@ class OperationsHubView extends ConsumerStatefulWidget {
 }
 
 class _OperationsHubViewState extends ConsumerState<OperationsHubView> {
-  int _activeTab = 0; // 0: Job Workspace, 1: AquaForge AI, 2: AI Takeoff, 3: AR Scan & Quote
+  int _activeTab = 3; // 0: Job Workspace, 1: AquaForge AI, 2: AI Takeoff, 3: AR Scan & Quote
 
   @override
   Widget build(BuildContext context) {
