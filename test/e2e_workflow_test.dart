@@ -75,7 +75,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // 10. Verify Lodgement Success via Snackbar and UI update
-    expect(find.textContaining('Successfully Lodge Form 4 for "Hot Water System Replacement"'), findsOneWidget);
+    expect(find.textContaining('Successfully Lodged Form 4 for "Hot Water System Replacement"'), findsOneWidget);
 
     // Job should no longer be in the unlodged list
     expect(find.text('Hot Water System Replacement'), findsNothing);

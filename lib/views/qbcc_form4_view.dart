@@ -280,7 +280,6 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
             ),
           ),
           const SizedBox(height: 24),
-          const SizedBox(height: 24),
           // Lodgement button
           SizedBox(
             width: double.infinity,
@@ -332,7 +331,7 @@ class _QbccForm4ViewState extends ConsumerState<QbccForm4View> {
       SnackBar(
         backgroundColor: const Color(0xFF00FF87),
         content: Text(
-          'Successfully Lodge Form 4 for "${job.title}". Statuory obligation satisfied!',
+          'Successfully Lodged Form 4 for "${job.title}". Statutory obligation satisfied!',
           style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
